@@ -8,45 +8,40 @@ interface StatCardProps {
     icon: LucideIcon;
     trend?: 'up' | 'down' | 'neutral';
     trendValue?: string;
-    color?: 'blue' | 'indigo' | 'emerald' | 'amber';
+    color?: 'blue' | 'indigo' | 'emerald' | 'amber' | 'slate';
 }
 
-const colorMap = {
-    blue: 'bg-blue-50 text-blue-600',
-    indigo: 'bg-indigo-50 text-indigo-600',
-    emerald: 'bg-emerald-50 text-emerald-600',
-    amber: 'bg-amber-50 text-amber-600',
-};
-
-export default function StatCard({
-    title,
-    value,
-    subtitle,
-    icon: Icon,
-    trend,
-    trendValue,
-    color = 'blue'
-}: StatCardProps) {
-    const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus;
-    const trendColor = trend === 'up' ? 'text-emerald-500' : trend === 'down' ? 'text-red-500' : 'text-slate-400';
-
+export default function StatCard({ title, value, subtitle, icon: Icon, color = 'blue', trend, trendValue }: StatCardProps) {
     return (
-        <div className="bg-white p-6 rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.04)] hover:-translate-y-1.5 hover:shadow-[0_15px_45px_rgba(0,0,0,0.08)] transition-all duration-300 group">
-            <div className="flex justify-between items-start mb-4">
-                <div className={`p-4 rounded-2xl ${colorMap[color]} group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon size={24} />
-                </div>
-                {trend && (
-                    <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-slate-50 ${trendColor}`}>
-                        <TrendIcon size={14} />
-                        {trendValue}
+        <div className={`group relative overflow-hidden bg-white dark:bg-slate-800/40 rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.25)] hover:-translate-y-1 hover:shadow-[0_15px_45px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_15px_45px_rgba(0,0,0,0.4)] transition-all duration-300 border border-slate-100/50 dark:border-slate-700/30`}>
+            {/* Subtle background glow effect on hover */}
+            <div className={`absolute -right-10 -top-10 w-32 h-32 bg-${color}-500/5 dark:bg-${color}-500/10 rounded-full blur-2xl group-hover:bg-${color}-500/10 dark:group-hover:bg-${color}-500/20 transition-colors duration-500`}></div>
+
+            <div className="relative z-10">
+                <div className="flex justify-between items-start mb-4">
+                    <div className={`p-3 rounded-2xl bg-${color}-50 dark:bg-${color}-500/10 text-${color}-600 dark:text-${color}-400 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300`}>
+                        <Icon size={24} strokeWidth={2} />
                     </div>
-                )}
-            </div>
-            <div>
-                <h3 className="text-slate-500 text-sm font-medium mb-1">{title}</h3>
-                <p className="text-3xl font-bold text-slate-800 tracking-tight">{value}</p>
-                <p className="text-xs text-slate-400 mt-2">{subtitle}</p>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <h3 className="text-slate-500 dark:text-slate-400 text-sm font-medium">{title}</h3>
+                    <div className="flex items-baseline gap-3">
+                        <span className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">{value}</span>
+                        {trend && trendValue && (
+                            <span className={`flex items-center text-xs font-semibold ${trend === 'up' ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' :
+                                trend === 'down' ? 'text-red-500 bg-red-50 dark:bg-red-500/10' :
+                                    'text-amber-500 bg-amber-50 dark:bg-amber-500/10'
+                                } px-2 py-1 rounded-lg`}>
+                                {trend === 'up' ? <TrendingUp size={12} className="mr-1" /> :
+                                    trend === 'down' ? <TrendingDown size={12} className="mr-1" /> :
+                                        <Minus size={12} className="mr-1" />}
+                                {trendValue}
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">{subtitle}</p>
+                </div>
             </div>
         </div>
     );

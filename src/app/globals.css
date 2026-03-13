@@ -1,11 +1,19 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
   --color-background: #f8fafc;
   --color-foreground: #0f172a;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --shadow-float: 0 10px 40px rgba(0,0,0,0.04);
+  --shadow-float: 0 10px 40px rgba(0, 0, 0, 0.04);
+}
+
+@theme dark {
+  --color-background: #000000;
+  --color-foreground: #f8fafc;
+  --shadow-float: 0 10px 40px rgba(0, 0, 0, 0.25);
 }
 
 body {
