@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SIAKAD Dashboard",
+  title: "SMK Perguruan Cikini - Dashboard",
   description: "Modern Academic Information System Dashboard",
 };
 
