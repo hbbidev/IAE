@@ -71,7 +71,7 @@ export default function RegisterPage() {
                         <User size={32} className="text-blue-600 dark:text-blue-400" />
                     </div>
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 tracking-tight">Create Account</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Join the SIAKAD academic platform.</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Join the PercikLab academic platform.</p>
                 </div>
 
                 <div className="bg-white/80 dark:bg-slate-800/20 backdrop-blur-xl rounded-3xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)] border border-white dark:border-slate-700/50 animate-in slide-in-from-bottom-8 fade-in duration-700 delay-150">

@@ -65,7 +65,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
                     <div className="w-10 h-10 min-w-[2.5rem] rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/30">
                         S
                     </div>
-                    {!collapsed && <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white whitespace-nowrap overflow-hidden">SIAKAD</span>}
+                    {!collapsed && <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white whitespace-nowrap overflow-hidden">PercikLab</span>}
                 </div>
 
                 <nav className="flex-1 flex flex-col gap-2 overflow-y-auto overflow-x-hidden no-scrollbar">
