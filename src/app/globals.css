@@ -3,23 +3,83 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-background: #f8fafc;
+  --color-background: #fdfdfd;
   --color-foreground: #0f172a;
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --shadow-float: 0 10px 40px rgba(0, 0, 0, 0.04);
+  
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-accent: #8b5cf6;
+  
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --shadow-float: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 30px 60px -20px rgba(0, 0, 0, 0.15);
+  
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @theme dark {
-  --color-background: #000000;
-  --color-foreground: #f8fafc;
-  --shadow-float: 0 10px 40px rgba(0, 0, 0, 0.25);
+  --color-background: #09090b;
+  --color-foreground: #fafafa;
+  
+  --color-primary: #60a5fa;
+  --color-primary-dark: #3b82f6;
+  --color-accent: #a78bfa;
+  
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --shadow-float: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), 
+    radial-gradient(at 100% 0%, hsla(339,49%,30%,0.1) 0, transparent 50%);
+  background-attachment: fixed;
+}
+
+.dark body {
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.3) 0, transparent 50%), 
+    radial-gradient(at 100% 0%, hsla(339,49%,30%,0.3) 0, transparent 50%);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--shadow-glass);
+}
+
+.dark .glass-panel {
+  background: rgba(24, 24, 27, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
 }

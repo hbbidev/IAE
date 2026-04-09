@@ -6,16 +6,68 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
 model User {
-  id        String   @id @default(cuid())
-  nim       String   @unique
+  id        String       @id @default(cuid())
+  nim       String?      @unique
   name      String
-  email     String   @unique
+  email     String       @unique
   password  String
+  role      Role         @default(STUDENT)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  // LMS Relations
+  enrollments Enrollment[]
+  courses     Course[]     @relation("TeacherCourses")
+}
+
+model Course {
+  id          String       @id @default(cuid())
+  title       String
+  description String?      @db.Text
+  thumbnail   String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  teacherId   String
+  teacher     User         @relation("TeacherCourses", fields: [teacherId], references: [id])
+  
+  lessons     Lesson[]
+  enrollments Enrollment[]
+}
+
+model Lesson {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  videoUrl  String?
+  order     Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  progress  Int      @default(0) // Percentage 0-100
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
 }

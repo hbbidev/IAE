@@ -8,18 +8,18 @@ interface StatCardProps {
     icon: LucideIcon;
     trend?: 'up' | 'down' | 'neutral';
     trendValue?: string;
-    color?: 'blue' | 'indigo' | 'emerald' | 'amber' | 'slate';
+    color?: 'blue' | 'indigo' | 'emerald' | 'amber' | 'slate' | 'purple';
 }
 
 export default function StatCard({ title, value, subtitle, icon: Icon, color = 'blue', trend, trendValue }: StatCardProps) {
     return (
-        <div className={`group relative overflow-hidden bg-white dark:bg-slate-800/40 rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.25)] hover:-translate-y-1 hover:shadow-[0_15px_45px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_15px_45px_rgba(0,0,0,0.4)] transition-all duration-300 border border-slate-100/50 dark:border-slate-700/30`}>
+        <div className={`group relative overflow-hidden glass-panel rounded-3xl p-6 hover-lift transition-all duration-300`}>
             {/* Subtle background glow effect on hover */}
-            <div className={`absolute -right-10 -top-10 w-32 h-32 bg-${color}-500/5 dark:bg-${color}-500/10 rounded-full blur-2xl group-hover:bg-${color}-500/10 dark:group-hover:bg-${color}-500/20 transition-colors duration-500`}></div>
+            <div className={`absolute -right-10 -top-10 w-32 h-32 bg-${color}-500/10 dark:bg-${color}-500/20 rounded-full blur-2xl group-hover:bg-${color}-500/20 dark:group-hover:bg-${color}-500/30 transition-colors duration-500`}></div>
 
             <div className="relative z-10">
                 <div className="flex justify-between items-start mb-4">
-                    <div className={`p-3 rounded-2xl bg-${color}-50 dark:bg-${color}-500/10 text-${color}-600 dark:text-${color}-400 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300`}>
+                    <div className={`p-3 rounded-2xl bg-${color}-50 dark:bg-${color}-500/10 text-${color}-600 dark:text-${color}-400 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300 shadow-sm`}>
                         <Icon size={24} strokeWidth={2} />
                     </div>
                 </div>
@@ -29,10 +29,10 @@ export default function StatCard({ title, value, subtitle, icon: Icon, color = '
                     <div className="flex items-baseline gap-3">
                         <span className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">{value}</span>
                         {trend && trendValue && (
-                            <span className={`flex items-center text-xs font-semibold ${trend === 'up' ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' :
-                                trend === 'down' ? 'text-red-500 bg-red-50 dark:bg-red-500/10' :
-                                    'text-amber-500 bg-amber-50 dark:bg-amber-500/10'
-                                } px-2 py-1 rounded-lg`}>
+                            <span className={`flex items-center text-xs font-semibold ${trend === 'up' ? 'text-emerald-600 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-500/20' :
+                                trend === 'down' ? 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-500/20' :
+                                    'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-500/20'
+                                } px-2.5 py-1 rounded-xl shadow-sm`}>
                                 {trend === 'up' ? <TrendingUp size={12} className="mr-1" /> :
                                     trend === 'down' ? <TrendingDown size={12} className="mr-1" /> :
                                         <Minus size={12} className="mr-1" />}
