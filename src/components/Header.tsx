@@ -5,6 +5,12 @@ import { ThemeToggle } from './ThemeToggle';
 
 export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     const { data: session } = useSession();
+    const role = (session?.user as any)?.role || 'STUDENT';
+    const roleDisplayMap: Record<string, string> = {
+        'STUDENT': 'Siswa Terdaftar',
+        'TEACHER': 'Tenaga Pengajar',
+        'ADMIN': 'Administrator Sistem'
+    };
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +38,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={20} />
                     <input
                         type="text"
-                        placeholder="Search courses, lessons, assignments..."
+                        placeholder="Cari kelas, materi, tugas..."
                         className="w-full glass-panel h-14 pl-12 pr-4 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 group-hover:-translate-y-0.5 placeholder:text-slate-400/80 text-slate-700 dark:text-slate-200"
                     />
                 </div>
@@ -56,14 +62,14 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                     >
                         <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-100 to-purple-100 dark:from-blue-900/40 dark:to-purple-900/40 overflow-hidden ring-2 ring-transparent group-hover:ring-blue-400 dark:group-hover:ring-blue-500 transition-all">
                             <img
-                                src={`https://api.dicebear.com/7.x/notionists/svg?seed=${session?.user?.name || 'Student'}`}
+                                src={`https://api.dicebear.com/7.x/notionists/svg?seed=${session?.user?.name || 'Siswa'}`}
                                 alt="User avatar"
                                 className="w-full h-full object-cover"
                             />
                         </div>
                         <div className="flex flex-col hidden sm:flex">
-                            <span className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300">{session?.user?.name || 'Student Name'}</span>
-                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Enrolled Student</span>
+                            <span className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300">{session?.user?.name || 'Nama Pengguna'}</span>
+                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{roleDisplayMap[role]}</span>
                         </div>
                         <ChevronDown size={16} className={`text-slate-400 ml-1 hidden sm:block transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`} />
                     </div>
@@ -72,14 +78,14 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                         <div className="absolute right-0 mt-3 w-48 glass-panel !bg-white/90 dark:!bg-slate-900/90 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200 z-50">
                             <div className="p-2 flex flex-col gap-1">
                                 <button className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-blue-600 dark:hover:text-blue-400 rounded-xl transition-colors">
-                                    <User size={16} /> My Profile
+                                    <User size={16} /> Profil Saya
                                 </button>
                                 <div className="h-px bg-slate-200 dark:bg-slate-700/50 my-1"></div>
                                 <button
                                     onClick={() => signOut({ callbackUrl: '/login' })}
                                     className="flex items-center gap-2 w-full px-3 py-2 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
                                 >
-                                    <LogOut size={16} /> Sign Out
+                                    <LogOut size={16} /> Keluar
                                 </button>
                             </div>
                         </div>

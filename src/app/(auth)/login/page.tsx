@@ -26,7 +26,7 @@ export default function LoginPage() {
             });
 
             if (res?.error) {
-                setError('Invalid Student ID or Password');
+                setError('ID Pengguna atau Kata Sandi salah');
                 setIsLoading(false);
             } else {
                 router.push('/');
@@ -49,8 +49,8 @@ export default function LoginPage() {
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white dark:bg-slate-800 shadow-xl shadow-blue-500/10 dark:shadow-blue-900/20 mb-6 border border-slate-100 dark:border-slate-700/50">
                         <Fingerprint size={32} className="text-blue-600 dark:text-blue-400" />
                     </div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 tracking-tight">Welcome Back</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Please sign in to your PercikLab account</p>
+                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 tracking-tight">Selamat Datang</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Silakan masuk ke akun LMS Elevate Anda</p>
                 </div>
 
                 <div className="bg-white/80 dark:bg-slate-800/20 backdrop-blur-xl rounded-3xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.3)] border border-white dark:border-slate-700/50 animate-in slide-in-from-bottom-8 fade-in duration-700 delay-150">
@@ -62,7 +62,7 @@ export default function LoginPage() {
                         )}
 
                         <div className="space-y-2 group">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Student ID (NIM)</label>
+                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Identifier / ID Pengguna</label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <Fingerprint size={18} className="text-slate-400 group-focus-within:text-blue-500 transition-colors" />
@@ -71,7 +71,7 @@ export default function LoginPage() {
                                     type="text"
                                     value={nim}
                                     onChange={(e) => setNim(e.target.value)}
-                                    placeholder="e.g 2301994820"
+                                    placeholder="e.g murid / guru / admin"
                                     required
                                     className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 transition-all font-medium"
                                 />
@@ -80,8 +80,8 @@ export default function LoginPage() {
 
                         <div className="space-y-2 group">
                             <div className="flex items-center justify-between ml-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Password</label>
-                                <a href="#" className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">Forgot?</a>
+                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kata Sandi</label>
+                                <a href="#" className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">Lupa Akses?</a>
                             </div>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -107,7 +107,7 @@ export default function LoginPage() {
                                 <Loader2 size={20} className="animate-spin" />
                             ) : (
                                 <>
-                                    Sign In <ArrowRight size={18} />
+                                    Masuk Ke LMS <ArrowRight size={18} />
                                 </>
                             )}
                         </button>
@@ -115,10 +115,7 @@ export default function LoginPage() {
 
                     <div className="mt-8 text-center">
                         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                            Don't have an account?{' '}
-                            <Link href="/register" className="text-blue-600 dark:text-blue-400 font-bold hover:underline decoration-2 underline-offset-4 transition-all">
-                                Register here
-                            </Link>
+                            Akun dibuat oleh Administrator sistem.
                         </p>
                     </div>
                 </div>

@@ -9,8 +9,8 @@ export const authOptions: AuthOptions = {
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                nim: { label: "Student ID (NIM)", type: "text", placeholder: "e.g. 2301994820" },
-                password: { label: "Password", type: "password" }
+                nim: { label: "Identifier / ID Pengguna", type: "text", placeholder: "e.g. murid / guru / admin" },
+                password: { label: "Kata Sandi", type: "password" }
             },
             async authorize(credentials) {
                 if (!credentials?.nim || !credentials?.password) {
@@ -35,7 +35,8 @@ export const authOptions: AuthOptions = {
                     id: user.id,
                     name: user.name,
                     email: user.email,
-                    nim: user.nim
+                    nim: user.nim,
+                    role: user.role
                 } as any;
             }
         })
@@ -45,6 +46,7 @@ export const authOptions: AuthOptions = {
             if (user) {
                 token.nim = (user as any).nim;
                 token.id = user.id;
+                token.role = (user as any).role;
             }
             return token;
         },
@@ -52,6 +54,7 @@ export const authOptions: AuthOptions = {
             if (token) {
                 (session.user as any).nim = token.nim;
                 (session.user as any).id = token.id;
+                (session.user as any).role = token.role;
             }
             return session;
         }

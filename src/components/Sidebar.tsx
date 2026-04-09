@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import {
     LayoutDashboard,
     BookOpen,
@@ -17,6 +18,9 @@ import {
 } from 'lucide-react';
 
 export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean, setMobileOpen?: (open: boolean) => void }) {
+    const { data: session, status } = useSession();
+    const role = (session?.user as any)?.role || 'STUDENT';
+    const isLoading = status === 'loading';
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
 
@@ -34,13 +38,16 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
     };
 
     const navItems = [
-        { name: 'Dashboard', icon: LayoutDashboard, href: '/' },
-        { name: 'My Courses', icon: BookOpen, href: '/courses' },
-        { name: 'Assignments', icon: ClipboardList, href: '/assignments' },
-        { name: 'Grades', icon: GraduationCap, href: '/grades' },
-        { name: 'Schedule', icon: Calendar, href: '/schedule' },
-        { name: 'Settings', icon: Settings, href: '/settings' },
-    ];
+        { name: 'Dasbor', icon: LayoutDashboard, href: '/', roles: ['STUDENT', 'TEACHER', 'ADMIN'] },
+        { name: 'Kursus Saya', icon: BookOpen, href: '/courses', roles: ['STUDENT'] },
+        { name: 'Kursus Saya', icon: BookOpen, href: '/teacher/courses', roles: ['TEACHER'] },
+        { name: 'Manajemen Kursus', icon: BookOpen, href: '/admin/courses', roles: ['ADMIN'] },
+        { name: 'Tugas', icon: ClipboardList, href: '/assignments', roles: ['STUDENT', 'TEACHER'] },
+        { name: 'Nilai', icon: GraduationCap, href: '/grades', roles: ['STUDENT', 'TEACHER'] },
+        { name: 'Jadwal', icon: Calendar, href: '/schedule', roles: ['STUDENT', 'TEACHER'] },
+        { name: 'Hak Akses', icon: Settings, href: '/admin/users', roles: ['ADMIN'] },
+        { name: 'Pengaturan', icon: Settings, href: '/settings', roles: ['STUDENT', 'TEACHER', 'ADMIN'] },
+    ].filter(item => item.roles.includes(role));
 
     return (
         <>
@@ -69,37 +76,45 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
                 </div>
 
                 <nav className="flex-1 flex flex-col gap-2 overflow-y-auto overflow-x-hidden no-scrollbar">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                className={`flex items-center gap-3 ${collapsed ? 'justify-center px-0' : 'px-4'} py-3.5 rounded-2xl transition-all duration-300 group hover-lift ${isActive
-                                    ? 'bg-white/80 dark:bg-white/10 text-blue-600 dark:text-blue-400 font-medium shadow-[0_8px_16px_rgba(59,130,246,0.1)] dark:shadow-[0_8px_16px_rgba(59,130,246,0.2)] ring-1 ring-white/50 dark:ring-white/10'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200'
-                                    }`}
-                                title={collapsed ? item.name : undefined}
-                            >
-                                <item.icon size={20} className={`min-w-[1.25rem] transition-colors duration-300 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
-                                {!collapsed && <span className="whitespace-nowrap">{item.name}</span>}
-                            </Link>
-                        )
-                    })}
+                    {isLoading ? (
+                        <div className="px-4 space-y-3 mt-2">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                                <div key={i} className="h-[52px] rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 animate-pulse"></div>
+                            ))}
+                        </div>
+                    ) : (
+                        navItems.map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    className={`flex items-center gap-3 ${collapsed ? 'justify-center px-0' : 'px-4'} py-3.5 rounded-2xl transition-all duration-300 group hover-lift ${isActive
+                                        ? 'bg-white/80 dark:bg-white/10 text-blue-600 dark:text-blue-400 font-medium shadow-[0_8px_16px_rgba(59,130,246,0.1)] dark:shadow-[0_8px_16px_rgba(59,130,246,0.2)] ring-1 ring-white/50 dark:ring-white/10'
+                                        : 'text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200'
+                                        }`}
+                                    title={collapsed ? item.name : undefined}
+                                >
+                                    <item.icon size={20} className={`min-w-[1.25rem] transition-colors duration-300 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
+                                    {!collapsed && <span className="whitespace-nowrap">{item.name}</span>}
+                                </Link>
+                            )
+                        })
+                    )}
                 </nav>
 
                 <div className={`mt-auto pt-8 transition-all duration-300 ${collapsed ? 'px-0' : 'px-2'}`}>
                     {!collapsed ? (
                         <div className="p-4 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 rounded-2xl ring-1 ring-indigo-500/20 backdrop-blur-md relative overflow-hidden">
                             <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
-                            <p className="text-xs font-semibold text-indigo-900 dark:text-indigo-200 mb-1 relative z-10">Premium Plan</p>
-                            <p className="text-xs text-indigo-700/70 dark:text-indigo-400/70 mb-3 relative z-10">Access all courses</p>
+                            <p className="text-xs font-semibold text-indigo-900 dark:text-indigo-200 mb-1 relative z-10">Paket Premium</p>
+                            <p className="text-xs text-indigo-700/70 dark:text-indigo-400/70 mb-3 relative z-10">Akses semua kelas</p>
                             <button className="w-full py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all duration-300 relative z-10">
-                                Upgrade Now
+                                Tingkatkan Sekarang
                             </button>
                         </div>
                     ) : (
-                        <button className="w-full h-12 flex items-center justify-center bg-gradient-to-br from-blue-600/10 to-purple-600/10 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-600/20 transition-colors" title="Upgrade Now">
+                        <button className="w-full h-12 flex items-center justify-center bg-gradient-to-br from-blue-600/10 to-purple-600/10 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-600/20 transition-colors" title="Tingkatkan Sekarang">
                             <Sparkles size={16} />
                         </button>
                     )}

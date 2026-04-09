@@ -27,8 +27,16 @@ model User {
   updatedAt DateTime     @updatedAt
 
   // LMS Relations
-  enrollments Enrollment[]
-  courses     Course[]     @relation("TeacherCourses")
+  enrollments  Enrollment[]
+  courses      Course[]     @relation("TeacherCourses")
+  submissions  Submission[]
+  quizAttempts QuizAttempt[]
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  ESSAY
+  SHORT_ANSWER
 }
 
 model Course {
@@ -44,6 +52,67 @@ model Course {
   
   lessons     Lesson[]
   enrollments Enrollment[]
+  assignments Assignment[]
+  quizzes     Quiz[]
+}
+
+model Quiz {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  timeLimit   Int?     // menit, null = tidak terbatas
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courseId    String
+  course      Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  attempts    QuizAttempt[]
+}
+
+model Question {
+  id            String       @id @default(cuid())
+  text          String       @db.Text
+  type          QuestionType
+  options       Json?        // Untuk MC: ["Opsi A", "Opsi B", "Opsi C", "Opsi D"]
+  correctAnswer String?      // Untuk MC: index ("0","1","2","3"), untuk Short: teks jawaban
+  points        Int          @default(10)
+  order         Int          @default(0)
+
+  quizId        String
+  quiz          Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers       QuizAnswer[]
+}
+
+model QuizAttempt {
+  id          String    @id @default(cuid())
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+  score       Int?
+
+  quizId      String
+  quiz        Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers     QuizAnswer[]
+
+  @@unique([quizId, userId])
+}
+
+model QuizAnswer {
+  id         String   @id @default(cuid())
+  answer     String?  @db.Text
+  isCorrect  Boolean?
+  score      Int?
+  feedback   String?  @db.Text
+
+  attemptId  String
+  attempt    QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
 }
 
 model Lesson {
@@ -51,12 +120,42 @@ model Lesson {
   title     String
   content   String   @db.Text
   videoUrl  String?
-  order     Int
+  order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   courseId  String
   course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model Assignment {
+  id          String     @id @default(cuid())
+  title       String
+  description String?    @db.Text
+  dueDate     DateTime?
+  maxScore    Int        @default(100)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  courseId    String
+  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+}
+
+model Submission {
+  id           String     @id @default(cuid())
+  content      String?    @db.Text
+  score        Int?
+  feedback     String?    @db.Text
+  submittedAt  DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, userId])
 }
 
 model Enrollment {
