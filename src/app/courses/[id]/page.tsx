@@ -31,6 +31,7 @@ export default async function StudentCourseDetailPage({ params }: { params: Prom
             assignments: {
                 orderBy: { createdAt: 'desc' },
                 include: {
+                    weekModule: { select: { id: true, weekNumber: true, title: true } },
                     submissions: {
                         where: { userId },
                         select: { id: true, content: true, score: true, feedback: true, submittedAt: true }
@@ -41,6 +42,7 @@ export default async function StudentCourseDetailPage({ params }: { params: Prom
                 where: { isPublished: true },
                 orderBy: { createdAt: 'desc' },
                 include: {
+                    weekModule: { select: { id: true, weekNumber: true, title: true } },
                     questions: {
                         orderBy: { order: 'asc' },
                         select: { id: true, text: true, type: true, options: true, points: true, order: true }
