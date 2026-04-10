@@ -76,7 +76,7 @@ function CourseCard({ course }: { course: Course }) {
         <div className={`glass-panel rounded-3xl p-6 flex flex-col gap-4 transition-all duration-300 hover-lift ${optimisticEnrolled ? 'ring-2 ring-blue-500/30' : ''}`}>
             {/* Top */}
             <div className="flex items-start justify-between gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-500/20">
+                <div className="w-12 h-12 rounded-2xl accent-bg flex items-center justify-center text-white shrink-0 shadow-lg">
                     <PlayCircle size={22} />
                 </div>
                 {optimisticEnrolled && (
@@ -116,7 +116,7 @@ function CourseCard({ course }: { course: Course }) {
                 {optimisticEnrolled && (
                     <Link
                         href={`/courses/${course.id}`}
-                        className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-[0_6px_16px_rgba(37,99,235,0.2)] hover:shadow-[0_8px_20px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 transition-all"
+                        className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-blue-600 text-white shadow-[0_6px_16px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.25)] hover:shadow-[0_8px_20px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.35)] hover:-translate-y-0.5 transition-all"
                     >
                         <PlayCircle size={16} /> Buka Kursus <ChevronRight size={14} />
                     </Link>
@@ -127,7 +127,7 @@ function CourseCard({ course }: { course: Course }) {
                     className={`w-full py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-60
                         ${optimisticEnrolled
                             ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 text-xs'
-                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-[0_6px_16px_rgba(37,99,235,0.2)] hover:shadow-[0_8px_20px_rgba(37,99,235,0.3)] hover:-translate-y-0.5'
+                            : 'bg-blue-600 text-white shadow-[0_6px_16px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.2)] hover:shadow-[0_8px_20px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.3)] hover:-translate-y-0.5'
                         }`}
                 >
                     {isPending ? (

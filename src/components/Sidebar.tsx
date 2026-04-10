@@ -69,7 +69,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
                 </button>
 
                 <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-2'} mb-10 mt-2 lg:mt-0 transition-all duration-300`}>
-                    <div className="w-10 h-10 min-w-[2.5rem] rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/40 animate-[float_4s_ease-in-out_infinite]">
+                    <div className="w-10 h-10 min-w-[2.5rem] rounded-2xl accent-bg flex items-center justify-center text-white font-bold shadow-lg animate-[float_4s_ease-in-out_infinite]">
                         <Sparkles size={18} />
                     </div>
                     {!collapsed && <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white whitespace-nowrap overflow-hidden">LMS Elevate</span>}

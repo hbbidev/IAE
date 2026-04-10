@@ -55,7 +55,7 @@ export default async function TeacherCoursesPage() {
                         >
                             {/* Icon + Title */}
                             <div className="flex items-start gap-3">
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-emerald-500/20">
+                                <div className="w-12 h-12 rounded-2xl accent-bg flex items-center justify-center text-white shrink-0 shadow-lg">
                                     <Sparkles size={20} />
                                 </div>
                                 <div className="flex-1 min-w-0">

@@ -34,7 +34,7 @@ function ProfileTab({ name, email, nim }: { name: string; email: string; nim: st
         <form action={formAction} className="space-y-6 max-w-2xl">
             {/* Avatar */}
             <div className="flex items-center gap-6 mb-8">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold ring-4 ring-white dark:ring-slate-800 shadow-lg select-none">
+                <div className="w-24 h-24 rounded-full accent-bg flex items-center justify-center text-white text-3xl font-bold ring-4 ring-white dark:ring-slate-800 shadow-lg select-none">
                     {name.charAt(0).toUpperCase()}
                 </div>
                 <div>

@@ -23,7 +23,7 @@ export default function StudentCourseDetailClient({ course }: { course: any }) {
                     <ArrowLeft size={16} /> Kembali ke Katalog Kursus
                 </Link>
                 <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white shrink-0 shadow-lg">
+                    <div className="w-12 h-12 rounded-2xl accent-bg flex items-center justify-center text-white shrink-0 shadow-lg">
                         <PlayCircle size={22} />
                     </div>
                     <div>

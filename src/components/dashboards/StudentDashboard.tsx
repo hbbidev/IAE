@@ -26,15 +26,14 @@ export default function StudentDashboard({ name, enrollments }: { name: string, 
 
   return (
     <>
-      <div className="bg-gradient-to-r from-blue-600 to-purple-700 rounded-3xl p-8 text-white shadow-[0_20px_40px_-15px_rgba(109,40,217,0.5)] mb-8 hover-lift relative overflow-hidden">
+      <div className="accent-bg rounded-3xl p-8 text-white shadow-[0_20px_40px_-15px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.4)] mb-8 hover-lift relative overflow-hidden">
         <div className="relative z-10">
           <h1 className="text-3xl font-bold mb-2 text-white flex items-center gap-2">
             Selamat datang kembali, {name}! <Sparkles className="text-yellow-300" size={24} />
           </h1>
-          <p className="text-blue-100 max-w-xl">Anda memiliki 2 tugas mendatang minggu ini. Lanjutkan kursus untuk mempertahankan rekor belajar Anda.</p>
+          <p className="text-white/80 max-w-xl">Anda memiliki 2 tugas mendatang minggu ini. Lanjutkan kursus untuk mempertahankan rekor belajar Anda.</p>
         </div>
         <div className="absolute top-0 right-0 -translate-y-1/3 translate-x-1/4 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-[pulse_6s_ease-in-out_infinite]"></div>
-        <div className="absolute bottom-0 right-1/4 translate-y-1/2 w-48 h-48 bg-purple-400/30 rounded-full blur-2xl animate-[float_5s_ease-in-out_infinite]"></div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

@@ -43,7 +43,7 @@ export default function CourseManagementClient({ courses, teachers, students }: 
                     </div>
                     <button
                         onClick={() => { setEditingCourse(null); setIsModalOpen(true); }}
-                        className="h-11 px-4 flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-xl shadow-[0_8px_20px_rgba(126,34,206,0.2)] hover:shadow-[0_10px_25px_rgba(126,34,206,0.3)] hover:-translate-y-0.5 transition-all w-max"
+                        className="h-11 px-4 flex items-center gap-2 accent-bg hover:opacity-90 text-white font-medium rounded-xl shadow-[0_8px_20px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.2)] hover:-translate-y-0.5 transition-all w-max"
                     >
                         <Plus size={18} /> <span className="hidden sm:inline">Tambah Kursus</span>
                     </button>
@@ -210,7 +210,7 @@ function CourseFormModal({ teachers, course, onClose }: { teachers: any[]; cours
                         <textarea name="description" defaultValue={course?.description || ''} rows={3} placeholder="Tuliskan silabus singkat..." className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-900 dark:text-white resize-none" />
                     </div>
 
-                    <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold py-3.5 rounded-xl mt-6 flex justify-center items-center gap-2 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-75 disabled:hover:translate-y-0">
+                    <button type="submit" disabled={isLoading} className="w-full accent-bg text-white font-bold py-3.5 rounded-xl mt-6 flex justify-center items-center gap-2 hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-75 disabled:hover:translate-y-0">
                         {isLoading ? <Loader2 size={18} className="animate-spin" /> : <><Plus size={18} /> Simpan Data Kursus</>}
                     </button>
                 </form>

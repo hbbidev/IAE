@@ -13,9 +13,9 @@
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
   
-  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-  --shadow-float: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
-  --shadow-hover: 0 30px 60px -20px rgba(0, 0, 0, 0.15);
+  --shadow-glass: 0 2px 12px 0 rgba(31, 38, 135, 0.04);
+  --shadow-float: 0 8px 24px -8px rgba(0, 0, 0, 0.07);
+  --shadow-hover: 0 12px 32px -10px rgba(0, 0, 0, 0.10);
   
   --animate-float: float 6s ease-in-out infinite;
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -29,9 +29,9 @@
   --color-primary-dark: #3b82f6;
   --color-accent: #a78bfa;
   
-  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  --shadow-float: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
-  --shadow-hover: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+  --shadow-glass: 0 2px 12px 0 rgba(0, 0, 0, 0.18);
+  --shadow-float: 0 8px 24px -8px rgba(0, 0, 0, 0.28);
+  --shadow-hover: 0 12px 32px -10px rgba(0, 0, 0, 0.40);
 }
 
 @keyframes float {
@@ -80,7 +80,7 @@ body {
 }
 
 .hover-lift:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-hover);
 }
 

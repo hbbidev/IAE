@@ -85,7 +85,7 @@ export default function QuizRunner({ quiz, previousAttempt }: { quiz: any; previ
                 </div>
             </div>
             {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
-            <button onClick={handleStart} disabled={isPending} className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50">
+            <button onClick={handleStart} disabled={isPending} className="w-full py-3.5 accent-bg text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-50">
                 {isPending ? <Loader2 size={20} className="animate-spin" /> : <><CheckSquare size={20} /> Mulai Mengerjakan Quiz</>}
             </button>
         </div>

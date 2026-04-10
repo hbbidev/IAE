@@ -41,7 +41,7 @@ export default function UserManagementClient({ users }: { users: any[] }) {
                     </div>
                     <button
                         onClick={() => { setEditingUser(null); setIsModalOpen(true); }}
-                        className="h-11 px-4 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-xl shadow-[0_8px_20px_rgba(37,99,235,0.2)] hover:shadow-[0_10px_25px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 transition-all w-max"
+                        className="h-11 px-4 flex items-center gap-2 accent-bg hover:opacity-90 text-white font-medium rounded-xl shadow-[0_8px_20px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.2)] hover:-translate-y-0.5 transition-all w-max"
                     >
                         <Plus size={18} /> <span className="hidden sm:inline">Tambah Pengguna</span>
                     </button>
@@ -206,7 +206,7 @@ function UserFormModal({ user, onClose }: { user?: any; onClose: () => void }) {
                         <input type="password" name="password" required={!user} defaultValue={user ? '' : 'password'} placeholder={user ? 'Kosongkan jika tidak berubah' : ''} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white font-mono" />
                     </div>
 
-                    <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 rounded-xl mt-4 flex justify-center items-center gap-2 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-75 disabled:hover:translate-y-0">
+                    <button type="submit" disabled={isLoading} className="w-full accent-bg text-white font-bold py-3 rounded-xl mt-4 flex justify-center items-center gap-2 hover:opacity-90 hover:-translate-y-0.5 transition-all disabled:opacity-75 disabled:hover:translate-y-0">
                         {isLoading ? <Loader2 size={18} className="animate-spin" /> : <><Plus size={18} /> Simpan Pengguna</>}
                     </button>
                 </form>

@@ -7,12 +7,12 @@ import { BookOpen, Users, ClipboardList, TrendingUp, Sparkles, ChevronRight } fr
 export default function TeacherDashboard({ name, courses }: { name: string, courses: any[] }) {
   return (
     <>
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-3xl p-8 text-white shadow-[0_20px_40px_-15px_rgba(5,150,105,0.5)] mb-8 hover-lift relative overflow-hidden">
+      <div className="accent-bg rounded-3xl p-8 text-white shadow-[0_20px_40px_-15px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.4)] mb-8 hover-lift relative overflow-hidden">
         <div className="relative z-10">
           <h1 className="text-3xl font-bold mb-2 text-white flex items-center gap-2">
             Selamat Datang, Bapak/Ibu {name}! <Sparkles className="text-yellow-300" size={24} />
           </h1>
-          <p className="text-emerald-100 max-w-xl">Anda memiliki {courses.length} kelas aktif. Periksa modul pengajaran Anda minggu ini.</p>
+          <p className="text-white/80 max-w-xl">Anda memiliki {courses.length} kelas aktif. Periksa modul pengajaran Anda minggu ini.</p>
         </div>
         <div className="absolute top-0 right-0 -translate-y-1/3 translate-x-1/4 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-[pulse_6s_ease-in-out_infinite]"></div>
       </div>

@@ -51,7 +51,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
 
                 <button className="relative p-3.5 glass-panel rounded-2xl hover-lift transition-all duration-300 text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white">
                     <Bell size={20} />
-                    <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
+                    <span className="absolute top-3 right-3 w-2.5 h-2.5 accent-bg rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
                 </button>
 
                 <div className="relative" ref={dropdownRef}>
@@ -60,7 +60,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                         className="flex items-center gap-3 glass-panel p-2 pr-4 rounded-full cursor-pointer hover-lift transition-all duration-300"
                         tabIndex={0}
                     >
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-100 to-purple-100 dark:from-blue-900/40 dark:to-purple-900/40 overflow-hidden ring-2 ring-transparent group-hover:ring-blue-400 dark:group-hover:ring-blue-500 transition-all">
+                        <div className="w-10 h-10 rounded-full accent-tint overflow-hidden transition-all">
                             <img
                                 src={`https://api.dicebear.com/7.x/notionists/svg?seed=${session?.user?.name || 'Siswa'}`}
                                 alt="User avatar"
@@ -68,7 +68,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                             />
                         </div>
                         <div className="flex flex-col hidden sm:flex">
-                            <span className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300">{session?.user?.name || 'Nama Pengguna'}</span>
+                            <span className="text-sm font-bold text-slate-900 dark:text-white">{session?.user?.name || 'Nama Pengguna'}</span>
                             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{roleDisplayMap[role]}</span>
                         </div>
                         <ChevronDown size={16} className={`text-slate-400 ml-1 hidden sm:block transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`} />
