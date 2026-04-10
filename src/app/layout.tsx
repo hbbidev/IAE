@@ -17,8 +17,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SMK Perguruan Cikini - Dashboard",
-  description: "Modern Academic Information System Dashboard",
+  title: "Perciklab — SMK Perguruan Cikini Jakarta",
+  description: "Platform Pembelajaran Digital SMK Perguruan Cikini Jakarta",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
