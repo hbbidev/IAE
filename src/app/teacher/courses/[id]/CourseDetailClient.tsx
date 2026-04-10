@@ -153,6 +153,17 @@ function MateriTab({ courseId, lessons, weekModules }: { courseId: string; lesso
                             <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Judul Materi</label>
                             <input name="title" defaultValue={editLesson?.title} required placeholder="contoh: Pengenalan Variabel" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm" />
                         </div>
+                        {weekModules.length > 0 && (
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Modul Minggu (Opsional)</label>
+                                <select name="weekModuleId" defaultValue={editLesson?.weekModuleId || ''} className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                                    <option value="">— Tanpa Modul —</option>
+                                    {weekModules.map((wm: any) => (
+                                        <option key={wm.id} value={wm.id}>Minggu {wm.weekNumber}: {wm.title}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                         <div>
                             <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Link Video (Opsional)</label>
                             <input name="videoUrl" defaultValue={editLesson?.videoUrl || ''} placeholder="https://youtube.com/..." className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm" />
