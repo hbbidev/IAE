@@ -26,11 +26,63 @@ export default async function Home() {
         });
         return <TeacherDashboard name={name} courses={courses} />;
     } else {
-        // Default to STUDENT view
         const enrollments = await prisma.enrollment.findMany({ 
             where: { userId: id }, 
             include: { course: true }
         });
-        return <StudentDashboard name={name} enrollments={enrollments} />;
+
+        // Ambil upcoming assignments (belum dikumpulkan, deadline belum lewat atau ada)
+        const upcomingAssignments = await prisma.assignment.findMany({
+            where: {
+                course: { enrollments: { some: { userId: id } } },
+                NOT: { submissions: { some: { userId: id } } },
+            },
+            orderBy: { dueDate: 'asc' },
+            take: 5,
+            include: { course: { select: { id: true, title: true } } },
+        });
+
+        // Ambil upcoming quizzes (published, belum dikerjakan, deadline belum lewat)
+        const upcomingQuizzes = await prisma.quiz.findMany({
+            where: {
+                isPublished: true,
+                course: { enrollments: { some: { userId: id } } },
+                NOT: { attempts: { some: { userId: id } } },
+                OR: [
+                    { deadline: null },
+                    { deadline: { gt: new Date() } },
+                ],
+            },
+            orderBy: { deadline: 'asc' },
+            take: 5,
+            include: { course: { select: { id: true, title: true } } },
+        });
+
+        // Gabung & sort berdasarkan deadline
+        const upcomingItems = [
+            ...upcomingAssignments.map(a => ({
+                id: a.id,
+                title: a.title,
+                courseName: a.course.title,
+                courseId: a.course.id,
+                deadline: a.dueDate,
+                type: 'assignment' as const,
+            })),
+            ...upcomingQuizzes.map(q => ({
+                id: q.id,
+                title: q.title,
+                courseName: q.course.title,
+                courseId: q.course.id,
+                deadline: q.deadline,
+                type: 'quiz' as const,
+            })),
+        ].sort((a, b) => {
+            if (!a.deadline && !b.deadline) return 0;
+            if (!a.deadline) return 1;
+            if (!b.deadline) return -1;
+            return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+        }).slice(0, 6);
+
+        return <StudentDashboard name={name} enrollments={enrollments} upcomingItems={upcomingItems} />;
     }
 }
