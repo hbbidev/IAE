@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { Search, Bell, ChevronDown, Menu, LogOut, User } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import { ThemeToggle } from './ThemeToggle';
@@ -26,13 +27,21 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
 
     return (
         <header className="flex items-center justify-between h-20 mb-8 z-10 relative gap-4">
-            <button
-                onClick={onMenuClick}
-                className="lg:hidden glass-panel p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none hover-lift"
-            >
-                <Menu size={24} />
-            </button>
+            {/* Mobile: hamburger + logo */}
+            <div className="flex items-center gap-3 lg:hidden">
+                <button
+                    onClick={onMenuClick}
+                    className="glass-panel p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none hover-lift"
+                >
+                    <Menu size={24} />
+                </button>
+                <div className="flex items-center gap-2">
+                    <Image src="/logo.png" alt="Perciklab" width={32} height={32} className="object-contain mix-blend-multiply dark:mix-blend-screen" />
+                    <span className="font-bold text-lg text-slate-900 dark:text-white">Perciklab</span>
+                </div>
+            </div>
 
+            {/* Desktop: search bar */}
             <div className="flex items-center flex-1 max-w-xl hidden sm:flex">
                 <div className="relative w-full group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={20} />

@@ -69,8 +69,8 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
                 </button>
 
                 <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-2'} mb-10 mt-2 lg:mt-0 transition-all duration-300`}>
-                    <div className="w-10 h-10 min-w-[2.5rem] rounded-2xl overflow-hidden bg-white flex items-center justify-center shadow-sm shrink-0">
-                        <Image src="/logo.png" alt="Perciklab Logo" width={40} height={40} className="object-contain" />
+                    <div className="w-10 h-10 min-w-[2.5rem] shrink-0 flex items-center justify-center">
+                        <Image src="/logo.png" alt="Perciklab Logo" width={40} height={40} className="object-contain mix-blend-multiply dark:mix-blend-screen" />
                     </div>
                     {!collapsed && <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white whitespace-nowrap overflow-hidden">Perciklab</span>}
                 </div>
