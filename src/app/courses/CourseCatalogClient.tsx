@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { BookOpen, Users, UserCheck, UserPlus, Loader2, PlayCircle, CheckCircle2, ChevronRight } from 'lucide-react';
-import { enrollStudent, unenrollStudent } from '@/actions/enrollment';
+import { enrollStudent } from '@/actions/enrollment';
 
 type Course = {
     id: string;
@@ -55,18 +55,14 @@ function CourseCard({ course }: { course: Course }) {
     const [optimisticEnrolled, setOptimisticEnrolled] = useState(course.enrolled);
     const [feedback, setFeedback] = useState('');
 
-    const handleToggle = () => {
+    const handleEnroll = () => {
+        if (optimisticEnrolled) return;
         startTransition(async () => {
             setFeedback('');
-            const prev = optimisticEnrolled;
-            setOptimisticEnrolled(!prev); // optimistic update
-
-            const result = prev
-                ? await unenrollStudent(course.id)
-                : await enrollStudent(course.id);
-
+            setOptimisticEnrolled(true);
+            const result = await enrollStudent(course.id);
             if (result.error) {
-                setOptimisticEnrolled(prev); // revert
+                setOptimisticEnrolled(false);
                 setFeedback(result.error);
             }
         });
@@ -113,31 +109,22 @@ function CourseCard({ course }: { course: Course }) {
 
             {/* CTA Buttons */}
             <div className="flex flex-col gap-2">
-                {optimisticEnrolled && (
+                {optimisticEnrolled ? (
                     <Link
                         href={`/courses/${course.id}`}
-                        className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-blue-600 text-white shadow-[0_6px_16px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.25)] hover:shadow-[0_8px_20px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.35)] hover:-translate-y-0.5 transition-all"
+                        className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-blue-600 text-white shadow-[0_4px_12px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.2)] hover:-translate-y-0.5 transition-all"
                     >
                         <PlayCircle size={16} /> Buka Kursus <ChevronRight size={14} />
                     </Link>
+                ) : (
+                    <button
+                        onClick={handleEnroll}
+                        disabled={isPending}
+                        className="w-full py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-60 bg-blue-600 text-white shadow-[0_4px_12px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.2)] hover:-translate-y-0.5"
+                    >
+                        {isPending ? <Loader2 size={16} className="animate-spin" /> : <><UserPlus size={16} /> Daftar Kursus Ini</>}
+                    </button>
                 )}
-                <button
-                    onClick={handleToggle}
-                    disabled={isPending}
-                    className={`w-full py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-60
-                        ${optimisticEnrolled
-                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 text-xs'
-                            : 'bg-blue-600 text-white shadow-[0_6px_16px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.2)] hover:shadow-[0_8px_20px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.3)] hover:-translate-y-0.5'
-                        }`}
-                >
-                    {isPending ? (
-                        <Loader2 size={16} className="animate-spin" />
-                    ) : optimisticEnrolled ? (
-                        'Batalkan Pendaftaran'
-                    ) : (
-                        <><UserPlus size={16} /> Daftar Kursus Ini</>
-                    )}
-                </button>
             </div>
         </div>
     );

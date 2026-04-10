@@ -26,6 +26,10 @@ model User {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
+  // MFA
+  totpSecret  String?
+  totpEnabled Boolean @default(false)
+
   // LMS Relations
   enrollments  Enrollment[]
   courses      Course[]     @relation("TeacherCourses")

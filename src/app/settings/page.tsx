@@ -2,24 +2,11 @@
 
 import { useState, useActionState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import {
-    Settings,
-    User,
-    Bell,
-    Shield,
-    Paintbrush,
-    Check,
-    AlertCircle,
-    Eye,
-    EyeOff,
-    Moon,
-    Sun,
-    Monitor,
-    Palette,
-} from "lucide-react";
+import { Settings, User, Bell, Shield, Paintbrush, Check, AlertCircle, Eye, EyeOff, Moon, Sun, Monitor, Palette } from "lucide-react";
 import { updateMyProfile } from "@/actions/user";
 import { useTheme } from "next-themes";
 import { useAccent, ACCENT_PRESETS } from "@/components/AccentProvider";
+import MfaSection from "@/components/MfaSection";
 
 // ─── Tab types ────────────────────────────────────────────────────────────────
 
@@ -134,7 +121,8 @@ function SecurityTab() {
     const [state, formAction, isPending] = useActionState(updateMyProfile, null);
 
     return (
-        <form action={formAction} className="space-y-6 max-w-xl">
+        <div className="space-y-8 max-w-xl">
+        <form action={formAction} className="space-y-6">
             <div>
                 <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">Ganti Kata Sandi</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -240,6 +228,13 @@ function SecurityTab() {
                 </button>
             </div>
         </form>
+
+        {/* Divider */}
+        <div className="border-t border-slate-100 dark:border-slate-700" />
+
+        {/* MFA Authenticator */}
+        <MfaSection />
+        </div>
     );
 }
 
