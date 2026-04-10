@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
@@ -14,7 +15,6 @@ import {
     ChevronLeft,
     ChevronRight,
     X,
-    Sparkles,
 } from 'lucide-react';
 
 export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean, setMobileOpen?: (open: boolean) => void }) {
@@ -69,10 +69,10 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
                 </button>
 
                 <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-2'} mb-10 mt-2 lg:mt-0 transition-all duration-300`}>
-                    <div className="w-10 h-10 min-w-[2.5rem] rounded-2xl accent-bg flex items-center justify-center text-white font-bold shadow-lg animate-[float_4s_ease-in-out_infinite]">
-                        <Sparkles size={18} />
+                    <div className="w-10 h-10 min-w-[2.5rem] rounded-2xl overflow-hidden bg-white flex items-center justify-center shadow-sm shrink-0">
+                        <Image src="/logo.png" alt="Perciklab Logo" width={40} height={40} className="object-contain" />
                     </div>
-                    {!collapsed && <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white whitespace-nowrap overflow-hidden">LMS Elevate</span>}
+                    {!collapsed && <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white whitespace-nowrap overflow-hidden">Perciklab</span>}
                 </div>
 
                 <nav className="flex-1 flex flex-col gap-2 overflow-y-auto overflow-x-hidden no-scrollbar">
