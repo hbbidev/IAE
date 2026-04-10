@@ -1,27 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarDays, Clock, MapPin, User, BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarDays, Clock, MapPin, User, BookOpen } from "lucide-react";
 
 const DAY_NAMES = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-const DAY_COLORS = [
-    '',
-    'from-blue-500 to-blue-600',
-    'from-indigo-500 to-indigo-600',
-    'from-violet-500 to-violet-600',
-    'from-emerald-500 to-emerald-600',
-    'from-amber-500 to-amber-600',
-    'from-rose-500 to-rose-600',
-];
-const DAY_LIGHT = [
-    '',
-    'bg-blue-50 dark:bg-blue-500/10 border-blue-100 dark:border-blue-500/20',
-    'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-100 dark:border-indigo-500/20',
-    'bg-violet-50 dark:bg-violet-500/10 border-violet-100 dark:border-violet-500/20',
-    'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20',
-    'bg-amber-50 dark:bg-amber-500/10 border-amber-100 dark:border-amber-500/20',
-    'bg-rose-50 dark:bg-rose-500/10 border-rose-100 dark:border-rose-500/20',
-];
 
 export default function ScheduleClient({ schedules, userRole }: { schedules: any[]; userRole: string }) {
     const todayNum = new Date().getDay(); // 0=Minggu, 1=Senin...
@@ -41,7 +23,7 @@ export default function ScheduleClient({ schedules, userRole }: { schedules: any
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-2xl shadow-sm">
+                    <div className="p-3 accent-tint accent-text rounded-2xl shadow-sm">
                         <CalendarDays size={28} />
                     </div>
                     <div>
@@ -89,20 +71,21 @@ export default function ScheduleClient({ schedules, userRole }: { schedules: any
                             <div className="flex gap-2 flex-wrap">
                                 {([1, 2, 3, 4, 5, 6] as const).map(day => {
                                     const hasSchedule = daysWithSchedule.includes(day);
+                                    const isSelected = selectedDay === day;
                                     return (
                                         <button
                                             key={day}
                                             onClick={() => setSelectedDay(day)}
                                             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                                                selectedDay === day
-                                                    ? 'bg-blue-600 text-white shadow-sm'
+                                                isSelected
+                                                    ? 'accent-bg text-white shadow-sm'
                                                     : hasSchedule
-                                                        ? 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-blue-400'
+                                                        ? 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400'
                                                         : 'bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-slate-400 cursor-default'
                                             }`}
                                         >
                                             {DAY_NAMES[day]}
-                                            {hasSchedule && <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-blue-500 opacity-70 align-middle" />}
+                                            {hasSchedule && <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full accent-bg opacity-70 align-middle" />}
                                         </button>
                                     );
                                 })}
@@ -130,66 +113,63 @@ export default function ScheduleClient({ schedules, userRole }: { schedules: any
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {filteredSchedules.map((item: any) => {
-                                const day = item.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6;
-                                return (
-                                    <div key={item.id} className={`glass-panel rounded-2xl border overflow-hidden ${DAY_LIGHT[day]}`}>
-                                        <div className="flex items-stretch">
-                                            {/* Day color bar */}
-                                            <div className={`w-1.5 bg-gradient-to-b ${DAY_COLORS[day]} shrink-0`} />
+                            {filteredSchedules.map((item: any) => (
+                                <div key={item.id} className="glass-panel rounded-2xl border border-slate-100 dark:border-slate-700/50 overflow-hidden">
+                                    <div className="flex items-stretch">
+                                        {/* Accent left bar */}
+                                        <div className="w-1.5 accent-bg shrink-0" />
 
-                                            <div className="flex-1 p-5">
-                                                <div className="flex items-start justify-between gap-4 flex-wrap">
-                                                    <div className="flex-1">
-                                                        {/* Course name */}
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <BookOpen size={16} className="text-slate-400 shrink-0" />
-                                                            <h3 className="font-bold text-slate-800 dark:text-slate-200 text-lg leading-tight">
-                                                                {item.courseName}
-                                                            </h3>
-                                                        </div>
-
-                                                        <div className="flex flex-wrap gap-4 text-sm text-slate-500 dark:text-slate-400">
-                                                            {/* Time */}
-                                                            <span className="flex items-center gap-1.5">
-                                                                <Clock size={14} />
-                                                                <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                                                    {item.startTime} – {item.endTime}
-                                                                </span>
-                                                            </span>
-
-                                                            {/* Room */}
-                                                            {item.room && (
-                                                                <span className="flex items-center gap-1.5">
-                                                                    <MapPin size={14} />
-                                                                    {item.room}
-                                                                </span>
-                                                            )}
-
-                                                            {/* Teacher */}
-                                                            <span className="flex items-center gap-1.5">
-                                                                <User size={14} />
-                                                                {item.teacherName}
-                                                            </span>
-                                                        </div>
-
-                                                        {item.note && (
-                                                            <p className="mt-2 text-xs text-slate-500 italic">{item.note}</p>
-                                                        )}
+                                        <div className="flex-1 p-5">
+                                            <div className="flex items-start justify-between gap-4 flex-wrap">
+                                                <div className="flex-1">
+                                                    {/* Course name */}
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <BookOpen size={16} className="text-slate-400 shrink-0" />
+                                                        <h3 className="font-bold text-slate-800 dark:text-slate-200 text-lg leading-tight">
+                                                            {item.courseName}
+                                                        </h3>
                                                     </div>
 
-                                                    {/* Day badge (only in weekly view) */}
-                                                    {view === 'weekly' && (
-                                                        <span className={`text-xs font-bold px-3 py-1.5 rounded-xl bg-gradient-to-r ${DAY_COLORS[day]} text-white shadow-sm shrink-0`}>
-                                                            {DAY_NAMES[day]}
+                                                    <div className="flex flex-wrap gap-4 text-sm text-slate-500 dark:text-slate-400">
+                                                        {/* Time */}
+                                                        <span className="flex items-center gap-1.5">
+                                                            <Clock size={14} />
+                                                            <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                                                {item.startTime} – {item.endTime}
+                                                            </span>
                                                         </span>
+
+                                                        {/* Room */}
+                                                        {item.room && (
+                                                            <span className="flex items-center gap-1.5">
+                                                                <MapPin size={14} />
+                                                                {item.room}
+                                                            </span>
+                                                        )}
+
+                                                        {/* Teacher */}
+                                                        <span className="flex items-center gap-1.5">
+                                                            <User size={14} />
+                                                            {item.teacherName}
+                                                        </span>
+                                                    </div>
+
+                                                    {item.note && (
+                                                        <p className="mt-2 text-xs text-slate-500 italic">{item.note}</p>
                                                     )}
                                                 </div>
+
+                                                {/* Day badge */}
+                                                {view === 'weekly' && (
+                                                    <span className="text-xs font-bold px-3 py-1.5 rounded-xl accent-bg text-white shadow-sm shrink-0">
+                                                        {DAY_NAMES[item.dayOfWeek]}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
-                                );
-                            })}
+                                </div>
+                            ))}
                         </div>
                     )}
 
@@ -201,7 +181,7 @@ export default function ScheduleClient({ schedules, userRole }: { schedules: any
                                 const count = schedules.filter(s => s.dayOfWeek === day).length;
                                 const isToday = day === todayMapped;
                                 return (
-                                    <div key={day} className={`text-center p-2 rounded-xl transition-all ${isToday ? `bg-gradient-to-b ${DAY_COLORS[day]} text-white` : 'text-slate-500 dark:text-slate-400'}`}>
+                                    <div key={day} className={`text-center p-2 rounded-xl transition-all ${isToday ? 'accent-bg text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                                         <p className="text-xs font-medium">{DAY_NAMES[day].slice(0, 3)}</p>
                                         <p className={`text-xl font-bold mt-0.5 ${count === 0 ? 'opacity-30' : ''}`}>{count}</p>
                                         <p className="text-xs opacity-70">kelas</p>
