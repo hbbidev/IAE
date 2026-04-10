@@ -122,118 +122,118 @@ function SecurityTab() {
 
     return (
         <div className="space-y-8 max-w-xl">
-        <form action={formAction} className="space-y-6">
-            <div>
-                <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">Ganti Kata Sandi</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Pastikan kata sandi baru minimal 6 karakter dan mudah diingat.
-                </p>
-            </div>
+            <form action={formAction} className="space-y-6">
+                <div>
+                    <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">Ganti Kata Sandi</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Pastikan kata sandi baru minimal 6 karakter dan mudah diingat.
+                    </p>
+                </div>
 
-            {/* Hidden name field — required by action */}
-            <input type="hidden" name="name" value="__keep__" />
+                {/* Hidden name field — required by action */}
+                <input type="hidden" name="name" value="__keep__" />
 
-            <div className="space-y-4">
-                {/* Kata Sandi Saat Ini */}
-                <div className="space-y-2">
-                    <label htmlFor="currentPassword" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Kata Sandi Saat Ini
-                    </label>
-                    <div className="relative">
-                        <input
-                            id="currentPassword"
-                            name="currentPassword"
-                            type={showCurrent ? "text" : "password"}
-                            placeholder="••••••••"
-                            className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowCurrent(!showCurrent)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                        >
-                            {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
+                <div className="space-y-4">
+                    {/* Kata Sandi Saat Ini */}
+                    <div className="space-y-2">
+                        <label htmlFor="currentPassword" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                            Kata Sandi Saat Ini
+                        </label>
+                        <div className="relative">
+                            <input
+                                id="currentPassword"
+                                name="currentPassword"
+                                type={showCurrent ? "text" : "password"}
+                                placeholder="••••••••"
+                                className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowCurrent(!showCurrent)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                            >
+                                {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Kata Sandi Baru */}
+                    <div className="space-y-2">
+                        <label htmlFor="newPassword" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                            Kata Sandi Baru
+                        </label>
+                        <div className="relative">
+                            <input
+                                id="newPassword"
+                                name="newPassword"
+                                type={showNew ? "text" : "password"}
+                                placeholder="min. 6 karakter"
+                                className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowNew(!showNew)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                            >
+                                {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Konfirmasi */}
+                    <div className="space-y-2">
+                        <label htmlFor="confirmPassword" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                            Konfirmasi Kata Sandi Baru
+                        </label>
+                        <div className="relative">
+                            <input
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                type={showConfirm ? "text" : "password"}
+                                placeholder="ulangi kata sandi baru"
+                                className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirm(!showConfirm)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                            >
+                                {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                {/* Kata Sandi Baru */}
-                <div className="space-y-2">
-                    <label htmlFor="newPassword" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Kata Sandi Baru
-                    </label>
-                    <div className="relative">
-                        <input
-                            id="newPassword"
-                            name="newPassword"
-                            type={showNew ? "text" : "password"}
-                            placeholder="min. 6 karakter"
-                            className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowNew(!showNew)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                        >
-                            {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
+                {/* Feedback */}
+                {state?.error && (
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 text-sm">
+                        <AlertCircle size={16} className="shrink-0" />
+                        {state.error}
                     </div>
-                </div>
-
-                {/* Konfirmasi */}
-                <div className="space-y-2">
-                    <label htmlFor="confirmPassword" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Konfirmasi Kata Sandi Baru
-                    </label>
-                    <div className="relative">
-                        <input
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            type={showConfirm ? "text" : "password"}
-                            placeholder="ulangi kata sandi baru"
-                            className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowConfirm(!showConfirm)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                        >
-                            {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
+                )}
+                {state?.success && (
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 text-sm">
+                        <Check size={16} className="shrink-0" />
+                        Kata sandi berhasil diubah!
                     </div>
+                )}
+
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                    <button
+                        type="submit"
+                        disabled={isPending}
+                        className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 shadow-sm shadow-blue-500/20 transition-all hover:-translate-y-0.5 disabled:opacity-60 flex items-center gap-2"
+                    >
+                        {isPending ? "Menyimpan..." : "Ganti Kata Sandi"}
+                    </button>
                 </div>
-            </div>
+            </form>
 
-            {/* Feedback */}
-            {state?.error && (
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 text-sm">
-                    <AlertCircle size={16} className="shrink-0" />
-                    {state.error}
-                </div>
-            )}
-            {state?.success && (
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 text-sm">
-                    <Check size={16} className="shrink-0" />
-                    Kata sandi berhasil diubah!
-                </div>
-            )}
+            {/* Divider */}
+            <div className="border-t border-slate-100 dark:border-slate-700" />
 
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-end">
-                <button
-                    type="submit"
-                    disabled={isPending}
-                    className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 shadow-sm shadow-blue-500/20 transition-all hover:-translate-y-0.5 disabled:opacity-60 flex items-center gap-2"
-                >
-                    {isPending ? "Menyimpan..." : "Ganti Kata Sandi"}
-                </button>
-            </div>
-        </form>
-
-        {/* Divider */}
-        <div className="border-t border-slate-100 dark:border-slate-700" />
-
-        {/* MFA Authenticator */}
-        <MfaSection />
+            {/* MFA Authenticator */}
+            <MfaSection />
         </div>
     );
 }
@@ -274,11 +274,10 @@ function AppearanceTab() {
                                     borderColor: `hsl(var(--accent-h), var(--accent-s), var(--accent-l))`,
                                     backgroundColor: `hsl(var(--accent-h) var(--accent-s) var(--accent-l) / 0.12)`,
                                 } : {}}
-                                className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all ${
-                                    isActive
+                                className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all ${isActive
                                         ? "text-blue-600 dark:text-blue-400"
                                         : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400"
-                                }`}
+                                    }`}
                             >
                                 <Icon size={24} />
                                 <span className="text-sm font-medium">{label}</span>
@@ -344,11 +343,10 @@ function AppearanceTab() {
                                 type="button"
                                 onClick={() => setPreset(p)}
                                 title={p.name}
-                                className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${
-                                    isActive
+                                className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${isActive
                                         ? "bg-slate-100 dark:bg-slate-800"
                                         : "hover:bg-slate-100 dark:hover:bg-slate-800"
-                                }`}
+                                    }`}
                                 style={isActive ? { outline: `2px solid ${p.hex}`, outlineOffset: "1px" } : {}}
                             >
                                 <span
@@ -403,9 +401,9 @@ function NotificationsTab() {
         setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
 
     const items = [
-        { key: "emailAssignment" as const, label: "Email — Tugas Baru", desc: "Notifikasi saat guru menambahkan tugas baru" },
-        { key: "emailQuiz" as const, label: "Email — Quiz", desc: "Pengingat deadline quiz yang hampir tiba" },
-        { key: "emailAnnouncement" as const, label: "Email — Pengumuman", desc: "Pengumuman dari administrator" },
+        { key: "emailAssignment" as const, label: "Email Tugas Baru", desc: "Notifikasi saat guru menambahkan tugas baru" },
+        { key: "emailQuiz" as const, label: "Email Quiz", desc: "Pengingat deadline quiz yang hampir tiba" },
+        { key: "emailAnnouncement" as const, label: "Email Pengumuman", desc: "Pengumuman dari administrator" },
         { key: "pushAll" as const, label: "Notifikasi Push", desc: "Semua notifikasi dalam aplikasi" },
     ];
 
@@ -491,11 +489,10 @@ export default function SettingsPage() {
                             <button
                                 key={id}
                                 onClick={() => setActiveTab(id)}
-                                className={`flex items-center gap-3 px-4 py-3 font-medium rounded-xl text-left transition-all ${
-                                    isActive
+                                className={`flex items-center gap-3 px-4 py-3 font-medium rounded-xl text-left transition-all ${isActive
                                         ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-sm"
                                         : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
-                                }`}
+                                    }`}
                             >
                                 <Icon size={18} />
                                 {label}
