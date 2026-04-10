@@ -13,22 +13,23 @@ const TYPE_LABELS: Record<string, { label: string; icon: any; color: string }> =
     SHORT_ANSWER: { label: 'Jawaban Singkat', icon: FileText, color: 'emerald' },
 };
 
-export default function QuizTab({ courseId, quizzes }: { courseId: string; quizzes: any[] }) {
+export default function QuizTab({ courseId, quizzes, weekModules }: { courseId: string; quizzes: any[]; weekModules: any[] }) {
     const [showCreate, setShowCreate] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [title, setTitle] = useState('');
     const [desc, setDesc] = useState('');
     const [timeLimit, setTimeLimit] = useState('');
     const [deadline, setDeadline] = useState('');
+    const [weekModuleId, setWeekModuleId] = useState('');
     const [msg, setMsg] = useState('');
 
     const handleCreate = () => {
         if (!title.trim()) return;
         startTransition(async () => {
             setMsg('');
-            const res = await createQuiz(courseId, title, desc, timeLimit ? parseInt(timeLimit) : null, deadline || null);
+            const res = await createQuiz(courseId, title, desc, timeLimit ? parseInt(timeLimit) : null, deadline || null, weekModuleId || null);
             if (res.error) setMsg('❌ ' + res.error);
-            else { setMsg('✓ Quiz berhasil dibuat!'); setTitle(''); setDesc(''); setTimeLimit(''); setDeadline(''); setShowCreate(false); }
+            else { setMsg('✓ Quiz berhasil dibuat!'); setTitle(''); setDesc(''); setTimeLimit(''); setDeadline(''); setWeekModuleId(''); setShowCreate(false); }
         });
     };
 
@@ -53,6 +54,17 @@ export default function QuizTab({ courseId, quizzes }: { courseId: string; quizz
                     <div className="space-y-3">
                         <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Judul Quiz (contoh: Quiz Bab 1 — Algoritma Dasar)" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                         <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} placeholder="Deskripsi/instruksi quiz (opsional)" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+                        {weekModules.length > 0 && (
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Modul Minggu (Opsional)</label>
+                                <select value={weekModuleId} onChange={e => setWeekModuleId(e.target.value)} className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="">— Tanpa Modul —</option>
+                                    {weekModules.map((wm: any) => (
+                                        <option key={wm.id} value={wm.id}>Minggu {wm.weekNumber}: {wm.title}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                         <div className="grid grid-cols-2 gap-3">
                             <div className="flex items-center gap-2">
                                 <Clock size={16} className="text-slate-400 shrink-0" />
@@ -78,9 +90,37 @@ export default function QuizTab({ courseId, quizzes }: { courseId: string; quizz
                     <p>Belum ada quiz. Buat quiz pertama untuk menguji pemahaman murid!</p>
                 </div>
             ) : (
-                quizzes.map(quiz => (
-                    <QuizCard key={quiz.id} quiz={quiz} courseId={courseId} />
-                ))
+                <div className="space-y-6">
+                    {/* Quiz tanpa modul */}
+                    {quizzes.filter(q => !q.weekModuleId).length > 0 && (
+                        <div className="space-y-3">
+                            {weekModules.length > 0 && <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tanpa Modul</p>}
+                            {quizzes.filter(q => !q.weekModuleId).map(quiz => (
+                                <QuizCard key={quiz.id} quiz={quiz} courseId={courseId} />
+                            ))}
+                        </div>
+                    )}
+                    {/* Per modul minggu */}
+                    {weekModules.map((wm: any) => {
+                        const wQuizzes = quizzes.filter(q => q.weekModuleId === wm.id);
+                        return (
+                            <div key={wm.id} className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-6 h-6 rounded-lg accent-bg text-white text-xs font-bold flex items-center justify-center shrink-0">{wm.weekNumber}</span>
+                                    <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{wm.title}</p>
+                                    <span className="text-xs text-slate-400">{wQuizzes.length} quiz</span>
+                                </div>
+                                {wQuizzes.length === 0 ? (
+                                    <p className="text-xs text-slate-400 italic pl-8">Belum ada quiz di modul ini.</p>
+                                ) : (
+                                    wQuizzes.map(quiz => (
+                                        <QuizCard key={quiz.id} quiz={quiz} courseId={courseId} />
+                                    ))
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
             )}
         </div>
     );

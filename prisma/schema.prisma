@@ -68,8 +68,10 @@ model Quiz {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  courseId    String
-  course      Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId     String
+  course       Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  weekModuleId String?
+  weekModule   WeekModule? @relation(fields: [weekModuleId], references: [id], onDelete: SetNull)
   questions   Question[]
   attempts    QuizAttempt[]
 }
@@ -127,6 +129,8 @@ model WeekModule {
   courseId    String
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons     Lesson[]
+  assignments Assignment[]
+  quizzes     Quiz[]
 }
 
 model Lesson {
@@ -153,8 +157,10 @@ model Assignment {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  courseId    String
-  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId     String
+  course       Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  weekModuleId String?
+  weekModule   WeekModule? @relation(fields: [weekModuleId], references: [id], onDelete: SetNull)
   submissions Submission[]
 }
 

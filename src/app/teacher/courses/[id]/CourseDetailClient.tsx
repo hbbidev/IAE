@@ -63,9 +63,9 @@ export default function CourseDetailClient({ course }: { course: any }) {
             {/* Tab Content */}
             <div className="flex-1">
                 {activeTab === 'materi' && <MateriTab courseId={course.id} lessons={course.lessons} weekModules={course.weekModules ?? []} />}
-                {activeTab === 'tugas' && <TugasTab courseId={course.id} assignments={course.assignments} />}
+                {activeTab === 'tugas' && <TugasTab courseId={course.id} assignments={course.assignments} weekModules={course.weekModules ?? []} />}
                 {activeTab === 'peserta' && <PesertaTab courseId={course.id} enrollments={course.enrollments} assignments={course.assignments} />}
-                {activeTab === 'quiz' && <QuizTab courseId={course.id} quizzes={course.quizzes ?? []} />}
+                {activeTab === 'quiz' && <QuizTab courseId={course.id} quizzes={course.quizzes ?? []} weekModules={course.weekModules ?? []} />}
                 {activeTab === 'jadwal' && <JadwalTab courseId={course.id} schedules={course.schedules ?? []} />}
             </div>
         </div>
@@ -368,7 +368,7 @@ function JadwalTab({ courseId, schedules }: { courseId: string; schedules: any[]
 }
 
 // ============ TAB TUGAS ============
-function TugasTab({ courseId, assignments }: { courseId: string; assignments: any[] }) {
+function TugasTab({ courseId, assignments, weekModules }: { courseId: string; assignments: any[]; weekModules: any[] }) {
     const [showForm, setShowForm] = useState(false);
     const [editAssignment, setEditAssignment] = useState<any>(null);
     const [isPending, startTransition] = useTransition();
@@ -390,6 +390,8 @@ function TugasTab({ courseId, assignments }: { courseId: string; assignments: an
         });
     };
 
+    const unassigned = assignments.filter(a => !a.weekModuleId);
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -410,6 +412,17 @@ function TugasTab({ courseId, assignments }: { courseId: string; assignments: an
                             <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Judul Tugas</label>
                             <input name="title" defaultValue={editAssignment?.title} required placeholder="contoh: Latihan Soal Pemrograman Dasar" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm" />
                         </div>
+                        {weekModules.length > 0 && (
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Modul Minggu (Opsional)</label>
+                                <select name="weekModuleId" defaultValue={editAssignment?.weekModuleId || ''} className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                                    <option value="">— Tanpa Modul —</option>
+                                    {weekModules.map((wm: any) => (
+                                        <option key={wm.id} value={wm.id}>Minggu {wm.weekNumber}: {wm.title}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Tenggat Waktu</label>
@@ -440,12 +453,43 @@ function TugasTab({ courseId, assignments }: { courseId: string; assignments: an
                     <p>Belum ada tugas. Buat tugas pertama untuk siswa Anda!</p>
                 </div>
             ) : (
-                assignments.map(assignment => (
-                    <AssignmentCard key={assignment.id} assignment={assignment} courseId={courseId}
-                        onEdit={() => { setEditAssignment(assignment); setShowForm(true); }}
-                        onDelete={() => { if(confirm(`Hapus tugas "${assignment.title}"?`)) startTransition(async() => { await deleteAssignment(assignment.id, courseId); }); }}
-                    />
-                ))
+                <div className="space-y-6">
+                    {/* Tugas tanpa modul */}
+                    {unassigned.length > 0 && (
+                        <div className="space-y-2">
+                            {weekModules.length > 0 && <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tanpa Modul</p>}
+                            {unassigned.map(assignment => (
+                                <AssignmentCard key={assignment.id} assignment={assignment} courseId={courseId}
+                                    onEdit={() => { setEditAssignment(assignment); setShowForm(true); }}
+                                    onDelete={() => { if(confirm(`Hapus tugas "${assignment.title}"?`)) startTransition(async() => { await deleteAssignment(assignment.id, courseId); }); }}
+                                />
+                            ))}
+                        </div>
+                    )}
+                    {/* Per modul minggu */}
+                    {weekModules.map((wm: any) => {
+                        const wAssignments = assignments.filter(a => a.weekModuleId === wm.id);
+                        return (
+                            <div key={wm.id} className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-6 h-6 rounded-lg accent-bg text-white text-xs font-bold flex items-center justify-center shrink-0">{wm.weekNumber}</span>
+                                    <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{wm.title}</p>
+                                    <span className="text-xs text-slate-400">{wAssignments.length} tugas</span>
+                                </div>
+                                {wAssignments.length === 0 ? (
+                                    <p className="text-xs text-slate-400 italic pl-8">Belum ada tugas di modul ini.</p>
+                                ) : (
+                                    wAssignments.map(assignment => (
+                                        <AssignmentCard key={assignment.id} assignment={assignment} courseId={courseId}
+                                            onEdit={() => { setEditAssignment(assignment); setShowForm(true); }}
+                                            onDelete={() => { if(confirm(`Hapus tugas "${assignment.title}"?`)) startTransition(async() => { await deleteAssignment(assignment.id, courseId); }); }}
+                                        />
+                                    ))
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
             )}
         </div>
     );

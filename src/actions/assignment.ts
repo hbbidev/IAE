@@ -28,7 +28,7 @@ export async function createAssignment(prevState: any, data: FormData) {
     const dueDateStr = data.get('dueDate') as string
     const maxScore = parseInt(data.get('maxScore') as string) || 100
 
-    if (!title) return { error: 'Judul tugas wajib diisi' }
+  const weekModuleId = data.get('weekModuleId') as string
 
     await prisma.assignment.create({
       data: {
@@ -36,7 +36,8 @@ export async function createAssignment(prevState: any, data: FormData) {
         description: description || null,
         dueDate: dueDateStr ? new Date(dueDateStr) : null,
         maxScore,
-        courseId
+        courseId,
+        weekModuleId: weekModuleId || null
       }
     })
 
@@ -55,6 +56,7 @@ export async function updateAssignment(prevState: any, data: FormData) {
     if (!session) return { error: 'Akses Ditolak' }
 
     const dueDateStr = data.get('dueDate') as string
+    const weekModuleId = data.get('weekModuleId') as string
 
     await prisma.assignment.update({
       where: { id },
@@ -63,6 +65,7 @@ export async function updateAssignment(prevState: any, data: FormData) {
         description: (data.get('description') as string) || null,
         dueDate: dueDateStr ? new Date(dueDateStr) : null,
         maxScore: parseInt(data.get('maxScore') as string) || 100,
+        weekModuleId: weekModuleId || null,
       }
     })
     revalidatePath(`/teacher/courses/${courseId}`)

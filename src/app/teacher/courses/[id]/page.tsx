@@ -21,11 +21,11 @@ export default async function TeacherCourseDetailPage({ params }: { params: Prom
             assignments: {
                 orderBy: { createdAt: 'desc' },
                 include: {
+                    weekModule: { select: { id: true, weekNumber: true, title: true } },
                     submissions: {
                         include: {
                             user: { select: { id: true, name: true, nim: true } }
                         },
-                        // userId is a column on Submission, include it for grade lookups
                         orderBy: { submittedAt: 'asc' }
                     }
                 }
@@ -39,6 +39,7 @@ export default async function TeacherCourseDetailPage({ params }: { params: Prom
             quizzes: {
                 orderBy: { createdAt: 'desc' },
                 include: {
+                    weekModule: { select: { id: true, weekNumber: true, title: true } },
                     questions: { orderBy: { order: 'asc' } },
                     attempts: {
                         include: {

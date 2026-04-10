@@ -19,7 +19,7 @@ async function verifyTeacher(courseId: string) {
 
 // =================== QUIZ CRUD (TEACHER) ===================
 
-export async function createQuiz(courseId: string, title: string, description: string, timeLimit: number | null, deadline: string | null = null) {
+export async function createQuiz(courseId: string, title: string, description: string, timeLimit: number | null, deadline: string | null = null, weekModuleId: string | null = null) {
   const session = await verifyTeacher(courseId)
   if (!session) return { error: 'Akses Ditolak' }
   try {
@@ -29,7 +29,8 @@ export async function createQuiz(courseId: string, title: string, description: s
         description: description || null,
         timeLimit,
         deadline: deadline ? new Date(deadline) : null,
-        courseId
+        courseId,
+        weekModuleId: weekModuleId || null
       }
     })
     revalidatePath(`/teacher/courses/${courseId}`)
