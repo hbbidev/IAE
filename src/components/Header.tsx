@@ -40,8 +40,8 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                     <Menu size={24} />
                 </button>
                 <div className="flex items-center gap-2">
-                    <Image src="/logo.png" alt="Perciklab" width={32} height={32} className="object-contain mix-blend-multiply dark:mix-blend-screen" />
-                    <span className="font-bold text-lg text-slate-900 dark:text-white">Perciklab</span>
+                    <Image src="/logo.png" alt="pErC lms" width={32} height={32} className="object-contain mix-blend-multiply dark:mix-blend-screen" />
+                    <span className="font-bold text-lg text-slate-900 dark:text-white">pErC lms</span>
                 </div>
             </div>
 

@@ -93,7 +93,7 @@ export default function VerifyMfaPage() {
                     {/* Logo */}
                     <div className="flex flex-col items-center gap-3">
                         <div className="w-16 h-16 flex items-center justify-center">
-                            <Image src="/logo.png" alt="Perciklab" width={64} height={64} className="object-contain mix-blend-multiply dark:mix-blend-screen" />
+                            <Image src="/logo.png" alt="pErC lms" width={64} height={64} className="object-contain mix-blend-multiply dark:mix-blend-screen" />
                         </div>
                         <div className="text-center">
                             <h1 className="text-xl font-bold text-slate-900 dark:text-white">Verifikasi Autentikator</h1>

@@ -17,7 +17,7 @@ export async function generateTotpSetup() {
 
     // Buat TOTP secret baru
     const totp = new OTPAuth.TOTP({
-        issuer: "Perciklab",
+        issuer: "pErC lms",
         label: user.email,
         algorithm: "SHA1",
         digits: 6,
@@ -47,7 +47,7 @@ export async function verifyAndEnableTotp(code: string) {
     if (!user?.totpSecret) return { error: "Setup MFA belum dimulai" };
 
     const totp = new OTPAuth.TOTP({
-        issuer: "Perciklab",
+        issuer: "pErC lms",
         label: user.email,
         algorithm: "SHA1",
         digits: 6,
@@ -77,7 +77,7 @@ export async function disableTotp(code: string) {
     if (!user?.totpSecret || !user.totpEnabled) return { error: "MFA tidak aktif" };
 
     const totp = new OTPAuth.TOTP({
-        issuer: "Perciklab",
+        issuer: "pErC lms",
         label: user.email,
         algorithm: "SHA1",
         digits: 6,

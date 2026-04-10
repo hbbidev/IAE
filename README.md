@@ -1,4 +1,4 @@
-# Perciklab — Platform Pembelajaran Digital
+# pErC lms — Platform Pembelajaran Digital
 
 > Platform LMS (Learning Management System) berbasis web untuk **SMK Perguruan Cikini Jakarta**, dibangun dengan Next.js 15, Prisma ORM, dan MySQL.
 

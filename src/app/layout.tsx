@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Perciklab — SMK Perguruan Cikini Jakarta",
+  title: "pErC lms — SMK Perguruan Cikini Jakarta",
   description: "Platform Pembelajaran Digital SMK Perguruan Cikini Jakarta",
   icons: {
     icon: "/favicon.png",
