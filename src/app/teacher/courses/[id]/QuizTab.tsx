@@ -19,15 +19,16 @@ export default function QuizTab({ courseId, quizzes }: { courseId: string; quizz
     const [title, setTitle] = useState('');
     const [desc, setDesc] = useState('');
     const [timeLimit, setTimeLimit] = useState('');
+    const [deadline, setDeadline] = useState('');
     const [msg, setMsg] = useState('');
 
     const handleCreate = () => {
         if (!title.trim()) return;
         startTransition(async () => {
             setMsg('');
-            const res = await createQuiz(courseId, title, desc, timeLimit ? parseInt(timeLimit) : null);
+            const res = await createQuiz(courseId, title, desc, timeLimit ? parseInt(timeLimit) : null, deadline || null);
             if (res.error) setMsg('❌ ' + res.error);
-            else { setMsg('✓ Quiz berhasil dibuat!'); setTitle(''); setDesc(''); setTimeLimit(''); setShowCreate(false); }
+            else { setMsg('✓ Quiz berhasil dibuat!'); setTitle(''); setDesc(''); setTimeLimit(''); setDeadline(''); setShowCreate(false); }
         });
     };
 
@@ -52,13 +53,19 @@ export default function QuizTab({ courseId, quizzes }: { courseId: string; quizz
                     <div className="space-y-3">
                         <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Judul Quiz (contoh: Quiz Bab 1 — Algoritma Dasar)" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                         <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} placeholder="Deskripsi/instruksi quiz (opsional)" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 flex-1">
-                                <Clock size={16} className="text-slate-400" />
-                                <input type="number" value={timeLimit} onChange={e => setTimeLimit(e.target.value)} placeholder="Batas waktu (menit, kosongkan = bebas)" className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="flex items-center gap-2">
+                                <Clock size={16} className="text-slate-400 shrink-0" />
+                                <input type="number" value={timeLimit} onChange={e => setTimeLimit(e.target.value)} placeholder="Batas waktu (menit)" className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                             </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-slate-400 shrink-0 font-medium">Tenggat</span>
+                                <input type="datetime-local" value={deadline} onChange={e => setDeadline(e.target.value)} className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                            </div>
+                        </div>
+                        <div className="flex justify-end">
                             <button onClick={handleCreate} disabled={!title.trim() || isPending} className="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl text-sm flex items-center gap-2 disabled:opacity-50">
-                                {isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Simpan
+                                {isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Simpan Quiz
                             </button>
                         </div>
                     </div>
@@ -141,6 +148,22 @@ function QuizCard({ quiz, courseId }: { quiz: any; courseId: string }) {
                             <span>{quiz.questions?.length ?? 0} soal</span>
                             <span>{totalPoints} poin total</span>
                             {quiz.timeLimit && <span className="flex items-center gap-1"><Clock size={11} /> {quiz.timeLimit} menit</span>}
+                            {quiz.deadline && (() => {
+                                const dl = new Date(quiz.deadline);
+                                const now = new Date();
+                                const expired = dl < now;
+                                const hoursLeft = (dl.getTime() - now.getTime()) / 3600000;
+                                return (
+                                    <span className={`flex items-center gap-1 font-medium px-1.5 py-0.5 rounded-md ${
+                                        expired ? 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400'
+                                        : hoursLeft < 24 ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
+                                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
+                                    }`}>
+                                        Tenggat: {dl.toLocaleDateString('id-ID', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}
+                                        {expired && ' (Tutup)'}
+                                    </span>
+                                );
+                            })()}
                             <span>{totalAttempts} percobaan murid</span>
                         </div>
                     </div>

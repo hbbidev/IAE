@@ -15,7 +15,9 @@ export default async function TeacherCourseDetailPage({ params }: { params: Prom
     const course = await prisma.course.findUnique({
         where: { id },
         include: {
-            lessons: { orderBy: { order: 'asc' } },
+            lessons: { orderBy: { order: 'asc' }, include: { weekModule: { select: { id: true, title: true, weekNumber: true } } } },
+            weekModules: { orderBy: { weekNumber: 'asc' } },
+            schedules: { orderBy: { dayOfWeek: 'asc' } },
             assignments: {
                 orderBy: { createdAt: 'desc' },
                 include: {
@@ -27,6 +29,7 @@ export default async function TeacherCourseDetailPage({ params }: { params: Prom
                 }
             },
             enrollments: {
+                orderBy: { createdAt: 'asc' },
                 include: {
                     user: { select: { id: true, name: true, nim: true } }
                 }

@@ -54,16 +54,19 @@ model Course {
   enrollments Enrollment[]
   assignments Assignment[]
   quizzes     Quiz[]
+  weekModules WeekModule[]
+  schedules   Schedule[]
 }
 
 model Quiz {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
-  description String?  @db.Text
-  timeLimit   Int?     // menit, null = tidak terbatas
-  isPublished Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  description String?   @db.Text
+  timeLimit   Int?      // menit, null = tidak terbatas
+  deadline    DateTime? // batas waktu pengerjaan
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   courseId    String
   course      Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -115,17 +118,30 @@ model QuizAnswer {
   @@unique([attemptId, questionId])
 }
 
-model Lesson {
-  id        String   @id @default(cuid())
-  title     String
-  content   String   @db.Text
-  videoUrl  String?
-  order     Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model WeekModule {
+  id          String   @id @default(cuid())
+  weekNumber  Int      // 1, 2, 3, ...
+  title       String   // "Minggu 1 - Pengenalan" atau custom
+  createdAt   DateTime @default(now())
 
-  courseId  String
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+}
+
+model Lesson {
+  id           String      @id @default(cuid())
+  title        String
+  content      String      @db.Text
+  videoUrl     String?
+  order        Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  courseId     String
+  course       Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  weekModuleId String?
+  weekModule   WeekModule? @relation(fields: [weekModuleId], references: [id], onDelete: SetNull)
 }
 
 model Assignment {
@@ -169,4 +185,17 @@ model Enrollment {
   course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
+}
+
+model Schedule {
+  id         String   @id @default(cuid())
+  dayOfWeek  Int      // 1=Senin, 2=Selasa, 3=Rabu, 4=Kamis, 5=Jumat, 6=Sabtu
+  startTime  String   // "08:00"
+  endTime    String   // "10:00"
+  room       String?
+  note       String?
+  createdAt  DateTime @default(now())
+
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }

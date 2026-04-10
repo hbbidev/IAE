@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
+import { AccentProvider } from "@/components/AccentProvider";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import "./globals.css";
 
@@ -30,9 +31,11 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} bg-slate-50 dark:bg-black text-slate-900 dark:text-slate-100 min-h-screen font-sans transition-colors duration-300`}>
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange={false}>
-            <LayoutWrapper>
-              {children}
-            </LayoutWrapper>
+            <AccentProvider>
+              <LayoutWrapper>
+                {children}
+              </LayoutWrapper>
+            </AccentProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

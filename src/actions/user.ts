@@ -98,3 +98,59 @@ export async function deleteUser(id: string) {
     return { error: 'Gagal menghapus: ' + err.message }
   }
 }
+
+// ─── updateMyProfile — untuk pengguna yang sedang login ────────────────────────
+
+export async function updateMyProfile(prevState: any, data: FormData) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session) return { error: 'Sesi tidak ditemukan. Silakan login ulang.' }
+
+    const userId = (session.user as any).id
+    const nameRaw = (data.get('name') as string)?.trim()
+    const currentPassword = (data.get('currentPassword') as string)?.trim()
+    const newPassword = (data.get('newPassword') as string)?.trim()
+    const confirmPassword = (data.get('confirmPassword') as string)?.trim()
+
+    // "__keep__" is a sentinel from Security tab (name unchanged)
+    const isNameChange = nameRaw && nameRaw !== '__keep__'
+
+    if (isNameChange && nameRaw.length < 2) {
+      return { error: 'Nama minimal 2 karakter.' }
+    }
+
+    const updateData: any = {}
+    if (isNameChange) updateData.name = nameRaw
+
+    // Ganti password jika diisi
+    if (newPassword || currentPassword) {
+      if (!currentPassword) return { error: 'Masukkan kata sandi saat ini untuk menggantinya.' }
+      if (!newPassword) return { error: 'Masukkan kata sandi baru.' }
+      if (newPassword.length < 6) return { error: 'Kata sandi baru minimal 6 karakter.' }
+      if (newPassword !== confirmPassword) return { error: 'Konfirmasi kata sandi tidak cocok.' }
+
+      const user = await prisma.user.findUnique({ where: { id: userId } })
+      if (!user) return { error: 'Pengguna tidak ditemukan.' }
+
+      const isMatch = await bcrypt.compare(currentPassword, user.password)
+      if (!isMatch) return { error: 'Kata sandi saat ini salah.' }
+
+      updateData.password = await bcrypt.hash(newPassword, 10)
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return { error: 'Tidak ada perubahan yang dilakukan.' }
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+    })
+
+    revalidatePath('/settings')
+    return { success: true, message: 'Berhasil diperbarui!' }
+  } catch (err: any) {
+    console.error('[updateMyProfile]', err)
+    return { error: 'Terjadi kesalahan: ' + err.message }
+  }
+}

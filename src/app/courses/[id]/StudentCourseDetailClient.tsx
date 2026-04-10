@@ -274,21 +274,68 @@ function QuizListTab({ quizzes }: { quizzes: any[] }) {
                 const attempt = quiz.myAttempt;
                 const done = !!attempt?.submittedAt;
                 const totalPoints = quiz.questions?.reduce((s: number, q: any) => s + q.points, 0) ?? 0;
+
+                // Deadline logic
+                const deadline = quiz.deadline ? new Date(quiz.deadline) : null;
+                const now = new Date();
+                const isExpired = deadline ? deadline < now : false;
+                const hoursLeft = deadline ? (deadline.getTime() - now.getTime()) / 3600000 : null;
+                const canTake = !isExpired;
+
+                let deadlineBadge = null;
+                if (deadline) {
+                    if (isExpired) {
+                        deadlineBadge = (
+                            <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400 font-medium">
+                                <Clock size={11} /> Tutup: {deadline.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        );
+                    } else if (hoursLeft !== null && hoursLeft < 24) {
+                        deadlineBadge = (
+                            <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 font-medium animate-pulse">
+                                <Clock size={11} /> Tutup: {deadline.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} ({Math.ceil(hoursLeft)}j lagi)
+                            </span>
+                        );
+                    } else {
+                        deadlineBadge = (
+                            <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                                <Clock size={11} /> Tenggat: {deadline.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        );
+                    }
+                }
+
                 return (
-                    <div key={quiz.id} className={`glass-panel rounded-2xl p-5 flex items-center justify-between gap-4 hover-lift ${done ? 'ring-2 ring-emerald-500/20' : ''}`}>
-                        <div className="flex items-center gap-4">
-                            <div className={done ? 'w-12 h-12 rounded-2xl flex items-center justify-center bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600' : 'w-12 h-12 rounded-2xl flex items-center justify-center bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600'}>
+                    <div key={quiz.id} className={`glass-panel rounded-2xl p-5 flex items-center justify-between gap-4 hover-lift ${done ? 'ring-2 ring-emerald-500/20' : isExpired && !done ? 'opacity-60' : ''}`}>
+                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                            <div className={done ? 'w-12 h-12 rounded-2xl flex items-center justify-center bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 shrink-0' : 'w-12 h-12 rounded-2xl flex items-center justify-center bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 shrink-0'}>
                                 {done ? <CheckCircle2 size={24} /> : <CheckSquare size={24} />}
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <h3 className="font-bold text-slate-800 dark:text-slate-200">{quiz.title}</h3>
-                                <p className="text-xs text-slate-500 mt-0.5">{quiz.questions?.length ?? 0} soal &middot; {totalPoints} poin</p>
-                                {done && <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-1">Skor: {attempt.score}/{totalPoints}</p>}
+                                <div className="flex flex-wrap items-center gap-2 mt-1">
+                                    <span className="text-xs text-slate-500">{quiz.questions?.length ?? 0} soal &middot; {totalPoints} poin</span>
+                                    {quiz.timeLimit && <span className="text-xs text-slate-500">⏱ {quiz.timeLimit} menit</span>}
+                                    {done && <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Skor: {attempt.score}/{totalPoints}</span>}
+                                    {deadlineBadge}
+                                </div>
                             </div>
                         </div>
-                        <button onClick={() => setSelectedQuizId(quiz.id)} className={done ? 'px-4 py-2.5 rounded-xl font-semibold text-sm bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 transition-all' : 'px-4 py-2.5 rounded-xl font-semibold text-sm bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg transition-all'}>
-                            {done ? 'Lihat Hasil' : 'Kerjakan Quiz'}
-                        </button>
+                        {canTake || done ? (
+                            <button
+                                onClick={() => setSelectedQuizId(quiz.id)}
+                                className={done
+                                    ? 'px-4 py-2.5 rounded-xl font-semibold text-sm bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 transition-all shrink-0'
+                                    : 'px-4 py-2.5 rounded-xl font-semibold text-sm bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg transition-all shrink-0'
+                                }
+                            >
+                                {done ? 'Lihat Hasil' : 'Kerjakan Quiz'}
+                            </button>
+                        ) : (
+                            <span className="px-4 py-2.5 rounded-xl font-semibold text-sm bg-red-50 dark:bg-red-500/10 text-red-500 shrink-0 cursor-not-allowed">
+                                Waktu Habis
+                            </span>
+                        )}
                     </div>
                 );
             })}

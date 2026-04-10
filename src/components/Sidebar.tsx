@@ -14,7 +14,7 @@ import {
     ChevronLeft,
     ChevronRight,
     X,
-    Sparkles
+    Sparkles,
 } from 'lucide-react';
 
 export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean, setMobileOpen?: (open: boolean) => void }) {
@@ -103,22 +103,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
                     )}
                 </nav>
 
-                <div className={`mt-auto pt-8 transition-all duration-300 ${collapsed ? 'px-0' : 'px-2'}`}>
-                    {!collapsed ? (
-                        <div className="p-4 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 rounded-2xl ring-1 ring-indigo-500/20 backdrop-blur-md relative overflow-hidden">
-                            <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
-                            <p className="text-xs font-semibold text-indigo-900 dark:text-indigo-200 mb-1 relative z-10">Paket Premium</p>
-                            <p className="text-xs text-indigo-700/70 dark:text-indigo-400/70 mb-3 relative z-10">Akses semua kelas</p>
-                            <button className="w-full py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all duration-300 relative z-10">
-                                Tingkatkan Sekarang
-                            </button>
-                        </div>
-                    ) : (
-                        <button className="w-full h-12 flex items-center justify-center bg-gradient-to-br from-blue-600/10 to-purple-600/10 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-600/20 transition-colors" title="Tingkatkan Sekarang">
-                            <Sparkles size={16} />
-                        </button>
-                    )}
-                </div>
+
 
                 {/* Collapse Toggle */}
                 <button

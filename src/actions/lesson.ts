@@ -27,6 +27,7 @@ export async function createLesson(prevState: any, data: FormData) {
     const title = data.get('title') as string
     const content = data.get('content') as string
     const videoUrl = data.get('videoUrl') as string
+    const weekModuleId = data.get('weekModuleId') as string
 
     if (!title || !content) return { error: 'Judul dan konten wajib diisi' }
 
@@ -37,7 +38,14 @@ export async function createLesson(prevState: any, data: FormData) {
     const order = (lastLesson?.order ?? 0) + 1
 
     await prisma.lesson.create({
-      data: { title, content, videoUrl: videoUrl || null, order, courseId }
+      data: {
+        title,
+        content,
+        videoUrl: videoUrl || null,
+        order,
+        courseId,
+        weekModuleId: weekModuleId || null
+      }
     })
 
     revalidatePath(`/teacher/courses/${courseId}`)
@@ -54,12 +62,15 @@ export async function updateLesson(prevState: any, data: FormData) {
     const session = await verifyTeacher(courseId)
     if (!session) return { error: 'Akses Ditolak' }
 
+    const weekModuleId = data.get('weekModuleId') as string;
+
     await prisma.lesson.update({
       where: { id },
       data: {
         title: data.get('title') as string,
         content: data.get('content') as string,
         videoUrl: (data.get('videoUrl') as string) || null,
+        weekModuleId: weekModuleId || null,
       }
     })
     revalidatePath(`/teacher/courses/${courseId}`)

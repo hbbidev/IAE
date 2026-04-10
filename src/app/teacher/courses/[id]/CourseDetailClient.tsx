@@ -5,13 +5,15 @@ import Link from 'next/link';
 import {
     ArrowLeft, BookOpen, ClipboardList, Users, Plus, X, Loader2,
     Pencil, Trash, FileText, ChevronDown, ChevronUp, Star,
-    Clock, CheckCircle2, AlertCircle
+    Clock, CheckCircle2, AlertCircle, CalendarDays, MapPin, FolderOpen
 } from 'lucide-react';
 import { createLesson, updateLesson, deleteLesson } from '@/actions/lesson';
 import { createAssignment, updateAssignment, deleteAssignment, gradeSubmission } from '@/actions/assignment';
+import { createWeekModule, deleteWeekModule } from '@/actions/weekModule';
+import { createSchedule, deleteSchedule } from '@/actions/weekModule';
 import QuizTab from './QuizTab';
 
-type TabId = 'materi' | 'tugas' | 'peserta' | 'quiz';
+type TabId = 'materi' | 'tugas' | 'peserta' | 'quiz' | 'jadwal';
 
 export default function CourseDetailClient({ course }: { course: any }) {
     const [activeTab, setActiveTab] = useState<TabId>('materi');
@@ -21,6 +23,7 @@ export default function CourseDetailClient({ course }: { course: any }) {
         { id: 'tugas', label: 'Tugas', icon: ClipboardList, count: course.assignments.length },
         { id: 'peserta', label: 'Peserta & Nilai', icon: Users, count: course.enrollments.length },
         { id: 'quiz', label: 'Quiz', icon: CheckCircle2, count: course.quizzes?.length ?? 0 },
+        { id: 'jadwal', label: 'Jadwal', icon: CalendarDays, count: course.schedules?.length ?? 0 },
     ];
 
     return (
@@ -59,24 +62,27 @@ export default function CourseDetailClient({ course }: { course: any }) {
 
             {/* Tab Content */}
             <div className="flex-1">
-                {activeTab === 'materi' && <MateriTab courseId={course.id} lessons={course.lessons} />}
+                {activeTab === 'materi' && <MateriTab courseId={course.id} lessons={course.lessons} weekModules={course.weekModules ?? []} />}
                 {activeTab === 'tugas' && <TugasTab courseId={course.id} assignments={course.assignments} />}
                 {activeTab === 'peserta' && <PesertaTab courseId={course.id} enrollments={course.enrollments} assignments={course.assignments} />}
                 {activeTab === 'quiz' && <QuizTab courseId={course.id} quizzes={course.quizzes ?? []} />}
+                {activeTab === 'jadwal' && <JadwalTab courseId={course.id} schedules={course.schedules ?? []} />}
             </div>
         </div>
     );
 }
 
 // ============ TAB MATERI ============
-function MateriTab({ courseId, lessons }: { courseId: string; lessons: any[] }) {
+function MateriTab({ courseId, lessons, weekModules }: { courseId: string; lessons: any[]; weekModules: any[] }) {
     const [showForm, setShowForm] = useState(false);
     const [editLesson, setEditLesson] = useState<any>(null);
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [showWeekForm, setShowWeekForm] = useState(false);
+    const [weekTitle, setWeekTitle] = useState('');
+    const [weekNumber, setWeekNumber] = useState(String((weekModules.length || 0) + 1));
     const [isPending, startTransition] = useTransition();
     const [msg, setMsg] = useState('');
     const [err, setErr] = useState('');
-
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const form = e.currentTarget;
@@ -92,17 +98,51 @@ function MateriTab({ courseId, lessons }: { courseId: string; lessons: any[] }) 
         });
     };
 
+    const handleAddWeek = () => {
+        if (!weekTitle.trim()) return;
+        const data = new FormData();
+        data.append('courseId', courseId);
+        data.append('weekNumber', weekNumber);
+        data.append('title', weekTitle);
+        startTransition(async () => {
+            setErr(''); setMsg('');
+            const res = await createWeekModule(null, data);
+            if (res.error) setErr(res.error);
+            else { setMsg(res.message || 'Berhasil!'); setShowWeekForm(false); setWeekTitle(''); setWeekNumber(String(weekModules.length + 2)); }
+        });
+    };
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <p className="text-sm text-slate-500">{lessons.length} materi tersedia</p>
-                <button onClick={() => { setShowForm(true); setEditLesson(null); }} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-[0_4px_12px_rgba(5,150,105,0.3)] hover:-translate-y-0.5 transition-all">
-                    <Plus size={16} /> Tambah Materi
-                </button>
+                <p className="text-sm text-slate-500">{lessons.length} materi &bull; {weekModules.length} modul minggu</p>
+                <div className="flex gap-2">
+                    <button onClick={() => { setShowWeekForm(v => !v); }} className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-semibold rounded-xl transition-all">
+                        <FolderOpen size={15} /> Tambah Minggu
+                    </button>
+                    <button onClick={() => { setShowForm(true); setEditLesson(null); }} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-[0_4px_12px_rgba(5,150,105,0.3)] hover:-translate-y-0.5 transition-all">
+                        <Plus size={16} /> Tambah Materi
+                    </button>
+                </div>
             </div>
 
             {msg && <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-sm rounded-xl border border-emerald-200 dark:border-emerald-500/20">{msg}</div>}
             {err && <div className="p-3 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-sm rounded-xl border border-red-200">{err}</div>}
+
+            {/* Add Week Form */}
+            {showWeekForm && (
+                <div className="glass-panel rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-3">Tambah Modul Minggu</p>
+                    <div className="flex gap-2">
+                        <input type="number" value={weekNumber} onChange={e => setWeekNumber(e.target.value)} placeholder="No." min="1" className="w-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                        <input value={weekTitle} onChange={e => setWeekTitle(e.target.value)} placeholder="Judul minggu (contoh: Pendahuluan & Konsep Dasar)" className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                        <button onClick={handleAddWeek} disabled={!weekTitle.trim() || isPending} className="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-xl text-sm flex items-center gap-2 disabled:opacity-60">
+                            {isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />} Simpan
+                        </button>
+                        <button onClick={() => setShowWeekForm(false)} className="px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-500 rounded-xl text-sm"><X size={14} /></button>
+                    </div>
+                </div>
+            )}
 
             {/* Form */}
             {showForm && (
@@ -131,41 +171,197 @@ function MateriTab({ courseId, lessons }: { courseId: string; lessons: any[] }) 
                 </div>
             )}
 
-            {/* Lesson List */}
+            {/* Lesson List — grouped by week */}
             {lessons.length === 0 && !showForm ? (
                 <div className="glass-panel rounded-2xl p-12 text-center text-slate-400">
                     <FileText size={40} className="mx-auto mb-3 opacity-30" />
                     <p>Belum ada materi. Tambahkan materi pertama!</p>
                 </div>
             ) : (
-                lessons.map((lesson, idx) => (
-                    <div key={lesson.id} className="glass-panel rounded-2xl overflow-hidden">
-                        <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setExpandedId(expandedId === lesson.id ? null : lesson.id)}>
-                            <div className="flex items-center gap-3">
-                                <span className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center justify-center shrink-0">{idx + 1}</span>
-                                <span className="font-semibold text-slate-800 dark:text-slate-200">{lesson.title}</span>
-                                {lesson.videoUrl && <span className="text-xs bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full font-medium">Video</span>}
+                <div className="space-y-6">
+                    {/* Lessons tanpa minggu */}
+                    {(() => {
+                        const unassigned = lessons.filter(l => !l.weekModuleId);
+                        if (unassigned.length === 0) return null;
+                        return (
+                            <div className="space-y-2">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tanpa Modul</p>
+                                {unassigned.map((lesson, idx) => <LessonRow key={lesson.id} lesson={lesson} idx={idx} expandedId={expandedId} setExpandedId={setExpandedId} onEdit={(l: any) => { setEditLesson(l); setShowForm(true); }} onDelete={(l: any) => { if(confirm('Hapus materi ini?')) startTransition(async() => { await deleteLesson(l.id, courseId); }); }} courseId={courseId} isPending={isPending} startTransition={startTransition} />)}
                             </div>
-                            <div className="flex items-center gap-2">
-                                <button onClick={(e) => { e.stopPropagation(); setEditLesson(lesson); setShowForm(true); }} className="w-7 h-7 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 flex items-center justify-center transition-colors"><Pencil size={14} /></button>
-                                <button onClick={(e) => { e.stopPropagation(); if(confirm('Hapus materi ini?')) startTransition(async() => { await deleteLesson(lesson.id, courseId); }); }} className="w-7 h-7 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center justify-center transition-colors"><Trash size={14} /></button>
-                                {expandedId === lesson.id ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+                        );
+                    })()}
+
+                    {/* Per minggu */}
+                    {weekModules.map((wm: any) => {
+                        const wLessons = lessons.filter(l => l.weekModuleId === wm.id);
+                        return (
+                            <div key={wm.id} className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center justify-center">{wm.weekNumber}</span>
+                                        <p className="font-semibold text-slate-700 dark:text-slate-200">{wm.title}</p>
+                                        <span className="text-xs text-slate-400">{wLessons.length} materi</span>
+                                    </div>
+                                    <button onClick={() => { if(confirm(`Hapus modul "${wm.title}"?`)) startTransition(async () => { await deleteWeekModule(wm.id, courseId); }); }} className="w-6 h-6 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center justify-center transition-colors">
+                                        <Trash size={12} />
+                                    </button>
+                                </div>
+                                {wLessons.length === 0 ? (
+                                    <p className="text-xs text-slate-400 italic pl-9">Belum ada materi di minggu ini.</p>
+                                ) : (
+                                    wLessons.map((lesson, idx) => <LessonRow key={lesson.id} lesson={lesson} idx={idx} expandedId={expandedId} setExpandedId={setExpandedId} onEdit={(l: any) => { setEditLesson(l); setShowForm(true); }} onDelete={(l: any) => { if(confirm('Hapus materi ini?')) startTransition(async() => { await deleteLesson(l.id, courseId); }); }} courseId={courseId} isPending={isPending} startTransition={startTransition} />)
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ── LessonRow ─────────────────────────────────────────────────────────────────
+function LessonRow({ lesson, idx, expandedId, setExpandedId, onEdit, onDelete }: any) {
+    return (
+        <div className="glass-panel rounded-2xl overflow-hidden">
+            <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setExpandedId(expandedId === lesson.id ? null : lesson.id)}>
+                <div className="flex items-center gap-3">
+                    <span className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center justify-center shrink-0">{idx + 1}</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{lesson.title}</span>
+                    {lesson.videoUrl && <span className="text-xs bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full font-medium">Video</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                    <button onClick={(e) => { e.stopPropagation(); onEdit(lesson); }} className="w-7 h-7 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 flex items-center justify-center transition-colors"><Pencil size={14} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); onDelete(lesson); }} className="w-7 h-7 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center justify-center transition-colors"><Trash size={14} /></button>
+                    {expandedId === lesson.id ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+                </div>
+            </div>
+            {expandedId === lesson.id && (
+                <div className="px-4 pb-4 border-t border-slate-100 dark:border-slate-700/50 pt-4">
+                    {lesson.videoUrl && (
+                        <div className="mb-3">
+                            <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400 hover:underline font-medium">
+                                ▶ Tonton Video Materi
+                            </a>
+                        </div>
+                    )}
+                    <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">{lesson.content}</p>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ============ TAB JADWAL ============
+const DAY_NAMES_SHORT = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+function JadwalTab({ courseId, schedules }: { courseId: string; schedules: any[] }) {
+    const [showForm, setShowForm] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const [msg, setMsg] = useState('');
+    const [err, setErr] = useState('');
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const data = new FormData(form);
+        data.append('courseId', courseId);
+
+        startTransition(async () => {
+            setErr(''); setMsg('');
+            const res = await createSchedule(null, data);
+            if (res.error) setErr(res.error);
+            else { setMsg(res.message || 'Berhasil!'); form.reset(); setShowForm(false); }
+        });
+    };
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <p className="text-sm text-slate-500">{schedules.length} jadwal pertemuan</p>
+                <button onClick={() => setShowForm(v => !v)} className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl shadow-[0_4px_12px_rgba(245,158,11,0.3)] hover:-translate-y-0.5 transition-all">
+                    <Plus size={16} /> Tambah Jadwal
+                </button>
+            </div>
+
+            {msg && <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-sm rounded-xl border border-emerald-200">{msg}</div>}
+            {err && <div className="p-3 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-sm rounded-xl border border-red-200">{err}</div>}
+
+            {showForm && (
+                <div className="glass-panel rounded-2xl p-5 border border-amber-200 dark:border-amber-500/30">
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4">Jadwal Pertemuan Baru</h3>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Hari</label>
+                                <select name="dayOfWeek" required className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                                    {DAY_NAMES_SHORT.slice(1).map((d, i) => (
+                                        <option key={i+1} value={i+1}>{d}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Jam Mulai</label>
+                                <input type="time" name="startTime" required className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm" />
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Jam Selesai</label>
+                                <input type="time" name="endTime" required className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm" />
                             </div>
                         </div>
-                        {expandedId === lesson.id && (
-                            <div className="px-4 pb-4 border-t border-slate-100 dark:border-slate-700/50 pt-4">
-                                {lesson.videoUrl && (
-                                    <div className="mb-3">
-                                        <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400 hover:underline font-medium">
-                                            ▶ Tonton Video Materi
-                                        </a>
-                                    </div>
-                                )}
-                                <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">{lesson.content}</p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Ruangan (Opsional)</label>
+                                <input name="room" placeholder="contoh: Lab 01, Room 304" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm" />
                             </div>
-                        )}
-                    </div>
-                ))
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Catatan (Opsional)</label>
+                                <input name="note" placeholder="contoh: Online via Zoom" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm" />
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <button type="submit" disabled={isPending} className="px-5 py-2.5 bg-amber-500 text-white font-semibold rounded-xl text-sm flex items-center gap-2 disabled:opacity-60">
+                                {isPending ? <Loader2 size={14} className="animate-spin" /> : <><Plus size={14} /> Simpan Jadwal</>}
+                            </button>
+                            <button type="button" onClick={() => setShowForm(false)} className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold rounded-xl text-sm">Batal</button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {schedules.length === 0 && !showForm ? (
+                <div className="glass-panel rounded-2xl p-12 text-center text-slate-400">
+                    <CalendarDays size={40} className="mx-auto mb-3 opacity-30" />
+                    <p>Belum ada jadwal. Tambahkan jadwal pertemuan untuk kursus ini!</p>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {[...schedules].sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.startTime.localeCompare(b.startTime)).map((sched: any) => (
+                        <div key={sched.id} className="glass-panel rounded-2xl p-4 flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
+                                    {DAY_NAMES_SHORT[sched.dayOfWeek]?.slice(0,3)}
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-slate-800 dark:text-slate-200">
+                                        {sched.startTime} – {sched.endTime}
+                                        <span className="ml-2 text-xs font-normal text-slate-400">{DAY_NAMES_SHORT[sched.dayOfWeek]}</span>
+                                    </p>
+                                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
+                                        {sched.room && <span className="flex items-center gap-1"><MapPin size={11} />{sched.room}</span>}
+                                        {sched.note && <span>{sched.note}</span>}
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => { if(confirm('Hapus jadwal ini?')) startTransition(async () => { await deleteSchedule(sched.id, courseId); }); }}
+                                className="w-8 h-8 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center justify-center transition-colors shrink-0"
+                            >
+                                <Trash size={15} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
             )}
         </div>
     );

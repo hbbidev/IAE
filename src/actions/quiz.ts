@@ -19,12 +19,18 @@ async function verifyTeacher(courseId: string) {
 
 // =================== QUIZ CRUD (TEACHER) ===================
 
-export async function createQuiz(courseId: string, title: string, description: string, timeLimit: number | null) {
+export async function createQuiz(courseId: string, title: string, description: string, timeLimit: number | null, deadline: string | null = null) {
   const session = await verifyTeacher(courseId)
   if (!session) return { error: 'Akses Ditolak' }
   try {
     const quiz = await prisma.quiz.create({
-      data: { title, description: description || null, timeLimit, courseId }
+      data: {
+        title,
+        description: description || null,
+        timeLimit,
+        deadline: deadline ? new Date(deadline) : null,
+        courseId
+      }
     })
     revalidatePath(`/teacher/courses/${courseId}`)
     return { success: true, quizId: quiz.id }

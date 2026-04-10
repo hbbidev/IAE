@@ -83,3 +83,76 @@ body {
   transform: translateY(-5px);
   box-shadow: var(--shadow-hover);
 }
+
+/* ─── Accent Color System ────────────────────────────────────────────────────── */
+/* Default accent HSL values — overridden by AccentProvider via JS */
+:root {
+  --accent-h: 217;
+  --accent-s: 91%;
+  --accent-l: 60%;
+  --accent-l-dark: 50%;
+  --accent-l-light: 85%;    /* Light mode: bright tint */
+  --accent-l-subtle: 18%;   /* Dark mode: dark tint */
+}
+
+/* Dark mode: flip light/subtle so tinted BGs stay dark */
+.dark {
+  --accent-l-light: 18%;
+  --accent-l-subtle: 85%;
+}
+
+/* Accent color utility classes */
+.accent-bg        { background-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l)); }
+.accent-bg-dark   { background-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l-dark)); }
+.accent-bg-tint   { background-color: hsl(var(--accent-h), 40%, var(--accent-l-light)); }
+.accent-text      { color: hsl(var(--accent-h), var(--accent-s), var(--accent-l)); }
+.accent-text-dark { color: hsl(var(--accent-h), var(--accent-s), var(--accent-l-dark)); }
+.accent-border    { border-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l)); }
+.accent-shadow    { box-shadow: 0 4px 14px hsl(var(--accent-h), var(--accent-s), var(--accent-l) / 0.35); }
+
+/* ── Override Tailwind blue → accent (solid backgrounds) ── */
+.bg-blue-600, .bg-blue-500 {
+  background-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l)) !important;
+}
+.hover\:bg-blue-700:hover, .hover\:bg-blue-600:hover {
+  background-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l-dark)) !important;
+}
+
+/* ── Tinted backgrounds: respect dark/light mode ── */
+/* Light mode: bg-blue-50 = bright tint */
+.bg-blue-50 {
+  background-color: hsl(var(--accent-h), 40%, var(--accent-l-light)) !important;
+}
+/* Dark mode equivalent: use darker tint so it's NOT white */
+.dark .bg-blue-50 {
+  background-color: hsl(var(--accent-h), 30%, var(--accent-l-light)) !important;
+}
+
+/* ── Text colors ── */
+.text-blue-600, .text-blue-500 {
+  color: hsl(var(--accent-h), var(--accent-s), var(--accent-l)) !important;
+}
+.dark .text-blue-400 {
+  color: hsl(var(--accent-h), var(--accent-s), var(--accent-l)) !important;
+}
+.text-blue-300, .text-blue-200 {
+  color: hsl(var(--accent-h), 60%, calc(var(--accent-l) + 12%)) !important;
+}
+
+/* ── Borders ── */
+.border-blue-500 {
+  border-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l)) !important;
+}
+
+/* ── Gradients ── */
+.from-blue-600 {
+  --tw-gradient-from: hsl(var(--accent-h), var(--accent-s), var(--accent-l-dark)) !important;
+}
+.to-blue-500 {
+  --tw-gradient-to: hsl(var(--accent-h), var(--accent-s), var(--accent-l)) !important;
+}
+
+/* ── Transparent/opacity variants ── */
+.bg-blue-500\/10, .bg-blue-600\/10 {
+  background-color: hsl(var(--accent-h) var(--accent-s) var(--accent-l) / 0.1) !important;
+}
