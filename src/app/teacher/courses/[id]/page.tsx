@@ -24,7 +24,9 @@ export default async function TeacherCourseDetailPage({ params }: { params: Prom
                     submissions: {
                         include: {
                             user: { select: { id: true, name: true, nim: true } }
-                        }
+                        },
+                        // userId is a column on Submission, include it for grade lookups
+                        orderBy: { submittedAt: 'asc' }
                     }
                 }
             },

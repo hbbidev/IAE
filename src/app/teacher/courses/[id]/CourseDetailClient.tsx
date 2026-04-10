@@ -598,6 +598,34 @@ function PesertaTab({ courseId, enrollments, assignments }: { courseId: string; 
                     <Users size={40} className="mx-auto mb-3 opacity-30" />
                     <p>Belum ada siswa yang terdaftar di kursus ini.</p>
                 </div>
+            ) : assignments.length === 0 ? (
+                <div className="glass-panel rounded-2xl overflow-hidden">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-slate-200 dark:border-slate-700/50 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                <th className="p-4">Siswa</th>
+                                <th className="p-4">NIM</th>
+                                <th className="p-4 text-center">Bergabung</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                            {enrollments.map((enrollment: any) => (
+                                <tr key={enrollment.userId}>
+                                    <td className="p-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 shrink-0">
+                                                <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${enrollment.user.name}`} alt="" />
+                                            </div>
+                                            <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{enrollment.user.name}</p>
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-sm text-slate-500 font-mono">{enrollment.user.nim ?? '—'}</td>
+                                    <td className="p-4 text-center text-xs text-slate-400">{new Date(enrollment.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             ) : (
                 <div className="glass-panel rounded-2xl overflow-hidden">
                     <div className="overflow-x-auto">
@@ -606,42 +634,49 @@ function PesertaTab({ courseId, enrollments, assignments }: { courseId: string; 
                                 <tr className="border-b border-slate-200 dark:border-slate-700/50 text-xs font-bold text-slate-500 uppercase tracking-wider">
                                     <th className="p-4">Siswa</th>
                                     {assignments.map((a: any) => (
-                                        <th key={a.id} className="p-4 text-center max-w-[100px]">
+                                        <th key={a.id} className="p-4 text-center min-w-[90px]">
                                             <span className="block truncate max-w-[80px]" title={a.title}>{a.title.substring(0,12)}{a.title.length>12?'…':''}</span>
                                             <span className="text-slate-400 font-normal normal-case">/{a.maxScore}</span>
                                         </th>
                                     ))}
-                                    <th className="p-4 text-center">Rata-rata</th>
+                                    <th className="p-4 text-center min-w-[80px]">Rata-rata</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
                                 {enrollments.map((enrollment: any) => {
+                                    // Match by user.id (submission doesn't expose userId scalar directly)
                                     const scores = assignments.map((a: any) => {
-                                        const sub = a.submissions?.find((s: any) => s.userId === enrollment.userId);
-                                        return sub?.score;
+                                        const sub = a.submissions?.find((s: any) => s.user?.id === enrollment.user.id);
+                                        return sub ? { score: sub.score, maxScore: a.maxScore, submitted: true } : null;
                                     });
-                                    const validScores = scores.filter((s: any) => s !== undefined && s !== null) as number[];
-                                    const avg = validScores.length > 0
-                                        ? Math.round(validScores.reduce((a: number, b: number) => a + b, 0) / validScores.length)
+                                    const scoredItems = scores.filter((s: any) => s !== null && s.score !== null) as { score: number; maxScore: number }[];
+                                    const avg = scoredItems.length > 0
+                                        ? Math.round(scoredItems.reduce((acc, s) => acc + (s.score / s.maxScore) * 100, 0) / scoredItems.length)
                                         : null;
 
                                     return (
-                                        <tr key={enrollment.userId}>
-                                            <td className="p-4 flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 shrink-0">
-                                                    <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${enrollment.user.name}`} alt="" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{enrollment.user.name}</p>
-                                                    <p className="text-xs text-slate-400">{enrollment.user.nim}</p>
+                                        <tr key={enrollment.user.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                            <td className="p-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 shrink-0">
+                                                        <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${enrollment.user.name}`} alt="" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{enrollment.user.name}</p>
+                                                        <p className="text-xs text-slate-400 font-mono">{enrollment.user.nim ?? '—'}</p>
+                                                    </div>
                                                 </div>
                                             </td>
                                             {assignments.map((a: any) => {
-                                                const sub = a.submissions?.find((s: any) => s.userId === enrollment.userId);
+                                                const sub = a.submissions?.find((s: any) => s.user?.id === enrollment.user.id);
                                                 return (
                                                     <td key={a.id} className="p-4 text-center">
                                                         {sub?.score !== undefined && sub?.score !== null ? (
-                                                            <span className={`font-bold text-sm ${sub.score / a.maxScore >= 0.7 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>{sub.score}</span>
+                                                            <span className={`font-bold text-sm ${
+                                                                sub.score / a.maxScore >= 0.7
+                                                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                                                    : 'text-red-500 dark:text-red-400'
+                                                            }`}>{sub.score}</span>
                                                         ) : sub ? (
                                                             <span className="text-amber-500 text-xs font-medium">Belum dinilai</span>
                                                         ) : (
@@ -652,9 +687,13 @@ function PesertaTab({ courseId, enrollments, assignments }: { courseId: string; 
                                             })}
                                             <td className="p-4 text-center">
                                                 {avg !== null ? (
-                                                    <span className={`font-bold text-base ${avg >= 70 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>{avg}</span>
+                                                    <span className={`font-bold text-sm px-2 py-0.5 rounded-lg ${
+                                                        avg >= 70
+                                                            ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10'
+                                                            : 'text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-500/10'
+                                                    }`}>{avg}%</span>
                                                 ) : (
-                                                    <span className="text-slate-300 text-sm">—</span>
+                                                    <span className="text-slate-300 dark:text-slate-600 text-sm">—</span>
                                                 )}
                                             </td>
                                         </tr>
