@@ -68,15 +68,25 @@ export default function StudentCourseDetailClient({ course }: { course: any }) {
             </div>
 
             {/* Content */}
-            {activeTab === 'materi' && <MateriTab lessons={course.lessons} />}
+            {activeTab === 'materi' && <MateriTab lessons={course.lessons} weekModules={course.weekModules ?? []} />}
             {activeTab === 'tugas' && <TugasTab assignments={course.assignments} />}
             {activeTab === 'quiz' && <QuizListTab quizzes={course.quizzes ?? []} />}
         </div>
     );
 }
 
-function MateriTab({ lessons }: { lessons: any[] }) {
+function MateriTab({ lessons, weekModules }: { lessons: any[]; weekModules: any[] }) {
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [openWeeks, setOpenWeeks] = useState<Set<string>>(new Set(['__unassigned__']));
+
+    const toggleWeek = (id: string) => {
+        setOpenWeeks(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
 
     if (lessons.length === 0) return (
         <div className="glass-panel rounded-3xl p-12 flex flex-col items-center justify-center text-center text-slate-400">
@@ -85,44 +95,124 @@ function MateriTab({ lessons }: { lessons: any[] }) {
         </div>
     );
 
-    return (
-        <div className="space-y-3">
-            {lessons.map((lesson, idx) => (
-                <div key={lesson.id} className="glass-panel rounded-2xl overflow-hidden transition-all duration-300">
-                    <button
-                        className="w-full flex items-center justify-between p-4 text-left"
-                        onClick={() => setExpandedId(expandedId === lesson.id ? null : lesson.id)}
-                    >
-                        <div className="flex items-center gap-3">
-                            <span className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 text-xs font-bold flex items-center justify-center shrink-0">
-                                {idx + 1}
-                            </span>
-                            <div>
-                                <p className="font-semibold text-slate-800 dark:text-slate-200">{lesson.title}</p>
-                                {lesson.videoUrl && (
-                                    <span className="text-xs bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded-md font-medium">▶ Video</span>
-                                )}
-                            </div>
-                        </div>
-                        {expandedId === lesson.id ? <ChevronUp size={16} className="text-slate-400 shrink-0" /> : <ChevronDown size={16} className="text-slate-400 shrink-0" />}
-                    </button>
+    const unassigned = lessons.filter(l => !l.weekModuleId);
+    const hasWeeks = weekModules.length > 0;
 
-                    {expandedId === lesson.id && (
-                        <div className="px-5 pb-5 border-t border-slate-100 dark:border-slate-700/50 pt-4 space-y-3">
-                            {lesson.videoUrl && (
-                                <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-xl transition-colors">
-                                    ▶ Tonton Video Materi
-                                </a>
-                            )}
-                            <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">{lesson.content}</p>
-                        </div>
-                    )}
+    return (
+        <div className="space-y-4">
+            {/* Ringkasan progress */}
+            <div className="glass-panel rounded-2xl p-4 flex items-center gap-4">
+                <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Progress Materi</p>
+                        <p className="text-xs font-semibold accent-text">{lessons.length} materi · {weekModules.length} modul</p>
+                    </div>
+                    <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div className="h-full accent-bg rounded-full transition-all" style={{ width: '100%' }} />
+                    </div>
                 </div>
-            ))}
+            </div>
+
+            {/* Materi tanpa modul */}
+            {unassigned.length > 0 && (
+                <div className="space-y-2">
+                    {hasWeeks && (
+                        <button
+                            onClick={() => toggleWeek('__unassigned__')}
+                            className="w-full flex items-center gap-3 px-1 py-1 group"
+                        >
+                            <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 text-xs font-bold flex items-center justify-center shrink-0">?</div>
+                            <p className="text-sm font-bold text-slate-500 flex-1 text-left">Materi Umum</p>
+                            <span className="text-xs text-slate-400">{unassigned.length} materi</span>
+                            {openWeeks.has('__unassigned__') ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
+                        </button>
+                    )}
+                    {(!hasWeeks || openWeeks.has('__unassigned__')) && unassigned.map((lesson, idx) => (
+                        <LessonCard key={lesson.id} lesson={lesson} idx={idx} expandedId={expandedId} setExpandedId={setExpandedId} />
+                    ))}
+                </div>
+            )}
+
+            {/* Per modul minggu */}
+            {weekModules.map((wm: any, wmIdx: number) => {
+                const wLessons = lessons.filter(l => l.weekModuleId === wm.id);
+                const isOpen = openWeeks.has(wm.id);
+                return (
+                    <div key={wm.id} className="space-y-2">
+                        {/* Week header */}
+                        <button
+                            onClick={() => toggleWeek(wm.id)}
+                            className="w-full flex items-center gap-3 px-1 py-1 group"
+                        >
+                            <div className="w-7 h-7 rounded-lg accent-bg text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-sm">
+                                {wm.weekNumber}
+                            </div>
+                            <div className="flex-1 text-left">
+                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:accent-text transition-colors">{wm.title}</p>
+                            </div>
+                            <span className="text-xs text-slate-400 shrink-0">{wLessons.length} materi</span>
+                            {isOpen ? <ChevronUp size={14} className="text-slate-400 shrink-0" /> : <ChevronDown size={14} className="text-slate-400 shrink-0" />}
+                        </button>
+
+                        {/* Separator line */}
+                        <div className="ml-10 h-px bg-slate-100 dark:bg-slate-800" />
+
+                        {/* Lessons */}
+                        {isOpen && (
+                            wLessons.length === 0 ? (
+                                <p className="text-xs text-slate-400 italic ml-10">Belum ada materi di modul ini.</p>
+                            ) : (
+                                <div className="space-y-2 ml-0">
+                                    {wLessons.map((lesson, idx) => (
+                                        <LessonCard key={lesson.id} lesson={lesson} idx={idx} expandedId={expandedId} setExpandedId={setExpandedId} />
+                                    ))}
+                                </div>
+                            )
+                        )}
+                    </div>
+                );
+            })}
         </div>
     );
 }
+
+function LessonCard({ lesson, idx, expandedId, setExpandedId }: { lesson: any; idx: number; expandedId: string | null; setExpandedId: (id: string | null) => void }) {
+    const isExpanded = expandedId === lesson.id;
+    return (
+        <div className="glass-panel rounded-2xl overflow-hidden transition-all duration-300">
+            <button
+                className="w-full flex items-center justify-between p-4 text-left"
+                onClick={() => setExpandedId(isExpanded ? null : lesson.id)}
+            >
+                <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-xl accent-tint accent-text text-xs font-bold flex items-center justify-center shrink-0">
+                        {idx + 1}
+                    </span>
+                    <div>
+                        <p className="font-semibold text-slate-800 dark:text-slate-200">{lesson.title}</p>
+                        {lesson.videoUrl && (
+                            <span className="text-xs bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded-md font-medium">▶ Video</span>
+                        )}
+                    </div>
+                </div>
+                {isExpanded ? <ChevronUp size={16} className="text-slate-400 shrink-0" /> : <ChevronDown size={16} className="text-slate-400 shrink-0" />}
+            </button>
+
+            {isExpanded && (
+                <div className="px-5 pb-5 border-t border-slate-100 dark:border-slate-700/50 pt-4 space-y-3">
+                    {lesson.videoUrl && (
+                        <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-xl transition-colors">
+                            ▶ Tonton Video Materi
+                        </a>
+                    )}
+                    <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">{lesson.content}</p>
+                </div>
+            )}
+        </div>
+    );
+}
+
 
 function TugasTab({ assignments }: { assignments: any[] }) {
     if (assignments.length === 0) return (

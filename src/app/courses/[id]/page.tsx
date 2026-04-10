@@ -21,7 +21,13 @@ export default async function StudentCourseDetailPage({ params }: { params: Prom
         where: { id },
         include: {
             teacher: { select: { name: true } },
-            lessons: { orderBy: { order: 'asc' } },
+            weekModules: { orderBy: { weekNumber: 'asc' } },
+            lessons: {
+                orderBy: { order: 'asc' },
+                include: {
+                    weekModule: { select: { id: true, weekNumber: true, title: true } }
+                }
+            },
             assignments: {
                 orderBy: { createdAt: 'desc' },
                 include: {
