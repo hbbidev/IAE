@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { Search, Bell, ChevronDown, Menu, LogOut, User } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Search, Bell, ChevronDown, Menu, LogOut, User, Settings } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -13,7 +15,9 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         'ADMIN': 'Administrator Sistem'
     };
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -47,7 +51,14 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={20} />
                     <input
                         type="text"
-                        placeholder="Cari kelas, materi, tugas..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        onKeyDown={e => {
+                            if (e.key === 'Enter' && searchQuery.trim()) {
+                                router.push(`/courses?q=${encodeURIComponent(searchQuery.trim())}`);
+                            }
+                        }}
+                        placeholder="Cari kelas, materi, tugas... (Enter)"
                         className="w-full glass-panel h-14 pl-12 pr-4 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 group-hover:-translate-y-0.5 placeholder:text-slate-400/80 text-slate-700 dark:text-slate-200"
                     />
                 </div>
@@ -58,10 +69,10 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                     <ThemeToggle />
                 </div>
 
-                <button className="relative p-3.5 glass-panel rounded-2xl hover-lift transition-all duration-300 text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white">
+                <Link href="/notifications" className="relative p-3.5 glass-panel rounded-2xl hover-lift transition-all duration-300 text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white">
                     <Bell size={20} />
                     <span className="absolute top-3 right-3 w-2.5 h-2.5 accent-bg rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
-                </button>
+                </Link>
 
                 <div className="relative" ref={dropdownRef}>
                     <div
@@ -84,11 +95,15 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                     </div>
 
                     {isProfileOpen && (
-                        <div className="absolute right-0 mt-3 w-48 glass-panel !bg-white/90 dark:!bg-slate-900/90 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200 z-50">
+                        <div className="absolute right-0 mt-3 w-52 glass-panel !bg-white/90 dark:!bg-slate-900/90 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200 z-50">
                             <div className="p-2 flex flex-col gap-1">
-                                <button className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-blue-600 dark:hover:text-blue-400 rounded-xl transition-colors">
-                                    <User size={16} /> Profil Saya
-                                </button>
+                                <Link
+                                    href="/settings"
+                                    onClick={() => setIsProfileOpen(false)}
+                                    className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-blue-600 dark:hover:text-blue-400 rounded-xl transition-colors"
+                                >
+                                    <User size={16} /> Profil &amp; Pengaturan
+                                </Link>
                                 <div className="h-px bg-slate-200 dark:bg-slate-700/50 my-1"></div>
                                 <button
                                     onClick={() => signOut({ callbackUrl: '/login' })}
