@@ -463,31 +463,6 @@ docker compose up -d
 docker compose exec app npx prisma migrate deploy
 ```
 
----
-
-## Konvensi Git Commit
-
-Proyek ini menggunakan **Conventional Commits**:
-
-| Prefix | Kapan digunakan |
-|--------|----------------|
-| `feat:` | Fitur baru |
-| `fix:` | Perbaikan bug |
-| `docs:` | Perubahan dokumentasi |
-| `style:` | Perubahan formatting/CSS (tanpa ubah logic) |
-| `refactor:` | Refaktor kode (tanpa fitur baru) |
-| `test:` | Menambah/mengubah testing |
-| `chore:` | Hal kecil (config, dependencies, dll) |
-
-**Contoh:**
-```bash
-git commit -m "feat: add weekly module grouping to student dashboard"
-git commit -m "fix: prisma client not updated after migration"
-git commit -m "style: reduce shadow thickness on glass panels"
-```
-
----
-
 ## Lisensi
 
 MIT License — © 2025 SMK Perguruan Cikini Jakarta
