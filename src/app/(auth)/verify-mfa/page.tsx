@@ -22,8 +22,9 @@ export default function VerifyMfaPage() {
             router.replace("/login");
             return;
         }
+        // Gunakan full page reload agar middleware baca cookie JWT terbaru
         if (!(session.user as any).mfaPending) {
-            router.replace("/");
+            window.location.replace("/");
         }
     }, [session, status, router]);
 
@@ -73,7 +74,9 @@ export default function VerifyMfaPage() {
             }
             // Update session JWT — clear mfaPending flag
             await update({ mfaVerified: true });
-            router.replace("/");
+            // Pakai full page reload (bukan client-side navigation) agar
+            // browser kirim cookie JWT terbaru ke server / middleware.
+            window.location.replace("/");
         });
     };
 
