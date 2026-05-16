@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
     ArrowLeft, BookOpen, ClipboardList, Users, Plus, X, Loader2,
     Pencil, Trash, FileText, ChevronDown, ChevronUp, Star,
-    Clock, CheckCircle2, AlertCircle, CalendarDays, MapPin, FolderOpen
+    Clock, CheckCircle2, AlertCircle, CalendarDays, MapPin, FolderOpen, UserCheck
 } from 'lucide-react';
 import { createLesson, updateLesson, deleteLesson } from '@/actions/lesson';
 import { createAssignment, updateAssignment, deleteAssignment, gradeSubmission } from '@/actions/assignment';
@@ -13,9 +13,9 @@ import { createWeekModule, deleteWeekModule } from '@/actions/weekModule';
 import { createSchedule, deleteSchedule } from '@/actions/weekModule';
 import QuizTab from './QuizTab';
 
-type TabId = 'materi' | 'tugas' | 'peserta' | 'quiz' | 'jadwal';
+type TabId = 'materi' | 'tugas' | 'peserta' | 'quiz' | 'jadwal' | 'absensi';
 
-export default function CourseDetailClient({ course }: { course: any }) {
+export default function CourseDetailClient({ course, attendances = [] }: { course: any, attendances?: any[] }) {
     const [activeTab, setActiveTab] = useState<TabId>('materi');
 
     const tabs: { id: TabId; label: string; icon: any; count?: number }[] = [
@@ -24,6 +24,7 @@ export default function CourseDetailClient({ course }: { course: any }) {
         { id: 'peserta', label: 'Peserta & Nilai', icon: Users, count: course.enrollments.length },
         { id: 'quiz', label: 'Quiz', icon: CheckCircle2, count: course.quizzes?.length ?? 0 },
         { id: 'jadwal', label: 'Jadwal', icon: CalendarDays, count: course.schedules?.length ?? 0 },
+        { id: 'absensi', label: 'Absensi', icon: UserCheck, count: attendances.length },
     ];
 
     return (
@@ -67,6 +68,7 @@ export default function CourseDetailClient({ course }: { course: any }) {
                 {activeTab === 'peserta' && <PesertaTab courseId={course.id} enrollments={course.enrollments} assignments={course.assignments} />}
                 {activeTab === 'quiz' && <QuizTab courseId={course.id} quizzes={course.quizzes ?? []} weekModules={course.weekModules ?? []} />}
                 {activeTab === 'jadwal' && <JadwalTab courseId={course.id} schedules={course.schedules ?? []} />}
+                {activeTab === 'absensi' && <AbsensiTab attendances={attendances} />}
             </div>
         </div>
     );
@@ -759,6 +761,72 @@ function PesertaTab({ courseId, enrollments, assignments }: { courseId: string; 
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
+
+// ============ TAB ABSENSI ============
+function AbsensiTab({ attendances }: { attendances: any[] }) {
+    if (attendances.length === 0) {
+        return (
+            <div className="glass-panel rounded-2xl p-12 text-center text-slate-400">
+                <UserCheck size={40} className="mx-auto mb-3 opacity-30" />
+                <p>Belum ada rekaman absensi siswa dari SIAKAd untuk kursus ini.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            <p className="text-sm text-slate-500">{attendances.length} rekaman presensi tersinkronisasi dari PerCikAIS (SIAKAd)</p>
+            
+            <div className="glass-panel rounded-2xl overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="border-b border-slate-200 dark:border-slate-700/50 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            <th className="p-4">Tanggal</th>
+                            <th className="p-4">Siswa</th>
+                            <th className="p-4 text-center">Status</th>
+                            <th className="p-4 text-center">Verifikasi</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                        {attendances.map((att: any) => (
+                            <tr key={att.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                <td className="p-4 text-sm text-slate-700 dark:text-slate-300 font-medium">
+                                    {new Date(att.attendance_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                                </td>
+                                <td className="p-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 shrink-0">
+                                            <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${att.student_name}`} alt="" />
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{att.student_name}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="p-4 text-center">
+                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                                        att.status.toLowerCase() === 'hadir' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                                        att.status.toLowerCase() === 'izin' || att.status.toLowerCase() === 'sakit' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
+                                        'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+                                    }`}>
+                                        {att.status}
+                                    </span>
+                                </td>
+                                <td className="p-4 text-center">
+                                    {att.is_verified ? (
+                                        <span className="text-emerald-500 flex items-center justify-center gap-1 text-xs font-bold"><CheckCircle2 size={14} /> Terverifikasi</span>
+                                    ) : (
+                                        <span className="text-amber-500 flex items-center justify-center gap-1 text-xs font-bold"><AlertCircle size={14} /> Menunggu</span>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
