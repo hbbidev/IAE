@@ -34,7 +34,7 @@ export default async function StudentCourseDetailPage({ params }: { params: Prom
                     weekModule: { select: { id: true, weekNumber: true, title: true } },
                     submissions: {
                         where: { userId },
-                        select: { id: true, content: true, score: true, feedback: true, submittedAt: true }
+                        select: { id: true, content: true, fileUrl: true, score: true, feedback: true, submittedAt: true }
                     }
                 }
             },

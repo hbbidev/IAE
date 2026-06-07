@@ -86,7 +86,7 @@ export default function CourseEnrollPanel({
                         </button>
                     </div>
                     {feedback && (
-                        <p className={`mt-2 text-xs font-medium ${feedback.startsWith('✓') ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                        <p className={`mt-2 text-xs font-medium ${feedback.startsWith('✓') ? 'text-blue-600 dark:text-blue-400' : 'text-red-500'}`}>
                             {feedback}
                         </p>
                     )}

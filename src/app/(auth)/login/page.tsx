@@ -113,7 +113,7 @@ export default function LoginPage() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-black flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
+        <div className="min-h-screen bg-[#F4F7FE] dark:bg-black flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
             {/* Ambient Background Glows */}
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/20 dark:bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/20 dark:bg-violet-600/10 rounded-full blur-[120px] pointer-events-none"></div>

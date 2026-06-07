@@ -154,3 +154,74 @@ export async function updateMyProfile(prevState: any, data: FormData) {
     return { error: 'Terjadi kesalahan: ' + err.message }
   }
 }
+
+// ─── QR Login Helper & Action ───────────────────────────────────────────────
+
+import crypto from "crypto";
+
+function signJwt(payload: any, secret: string) {
+  const header = { alg: "HS256", typ: "JWT" };
+  
+  const base64UrlEncode = (input: string | Buffer) => {
+    const buf = typeof input === "string" ? Buffer.from(input) : input;
+    return buf
+      .toString("base64")
+      .replace(/=/g, "")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_");
+  };
+
+  const headerSegment = base64UrlEncode(JSON.stringify(header));
+  const payloadSegment = base64UrlEncode(JSON.stringify(payload));
+  
+  const stringToSign = `${headerSegment}.${payloadSegment}`;
+  const hmac = crypto.createHmac("sha256", secret);
+  hmac.update(stringToSign);
+  const signature = base64UrlEncode(hmac.digest());
+  
+  return `${stringToSign}.${signature}`;
+}
+
+export async function generateMobileLoginQrCodePayload() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) return { error: 'Sesi tidak ditemukan. Silakan login ulang.' };
+
+    const userId = (session.user as any).id;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return { error: 'Pengguna tidak ditemukan.' };
+
+    // Secret must match backend's JWT_SECRET
+    const secret = process.env.JWT_SECRET || 'percik-super-secret-jwt-key-2026-change-in-production';
+    
+    // Generate JWT token
+    const token = signJwt({
+      sub: user.email,
+      user_id: user.id,
+      role: user.role,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60) // 30 days expiration for mobile login
+    }, secret);
+
+    const userData = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      nim: user.nim,
+      nisn: user.nisn,
+      kelas: user.kelas
+    };
+
+    // Return the formatted QR data string
+    const qrPayload = JSON.stringify({
+      type: "login",
+      token: token,
+      user: userData
+    });
+
+    return { success: true, payload: qrPayload };
+  } catch (err: any) {
+    return { error: 'Gagal membuat QR: ' + err.message };
+  }
+}

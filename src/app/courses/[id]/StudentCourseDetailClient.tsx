@@ -8,6 +8,7 @@ import {
     Star, Loader2, Send, CheckSquare
 } from 'lucide-react';
 import { submitAssignment } from '@/actions/assignment';
+import { retakeQuiz } from '@/actions/quiz';
 import QuizRunner from './QuizRunner';
 
 type Tab = 'materi' | 'tugas' | 'quiz';
@@ -41,7 +42,7 @@ export default function StudentCourseDetailClient({ course }: { course: any }) {
                 <span className="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 text-sm font-medium flex items-center gap-1.5">
                     <ClipboardList size={14} /> {course.assignments.length} Tugas
                 </span>
-                <span className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-sm font-medium flex items-center gap-1.5">
+                <span className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 text-sm font-medium flex items-center gap-1.5">
                     <CheckCircle2 size={14} /> {course.assignments.filter((a: any) => a.mySubmission).length} Dikumpulkan
                 </span>
             </div>
@@ -270,31 +271,93 @@ function TugasTab({ assignments, weekModules }: { assignments: any[]; weekModule
 function AssignmentCard({ assignment }: { assignment: any }) {
     const [expanded, setExpanded] = useState(false);
     const [answer, setAnswer] = useState(assignment.mySubmission?.content ?? '');
+    const [file, setFile] = useState<File | null>(null);
+    const [fileUrl, setFileUrl] = useState(assignment.mySubmission?.fileUrl ?? '');
     const [isPending, startTransition] = useTransition();
     const [msg, setMsg] = useState('');
 
     const isOverdue = assignment.dueDate && new Date(assignment.dueDate) < new Date();
     const submitted = !!assignment.mySubmission;
     const graded = assignment.mySubmission?.score !== null && assignment.mySubmission?.score !== undefined;
+    const submissionType = assignment.submissionType || 'TEXT';
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selected = e.target.files?.[0];
+        if (selected) {
+            if (selected.type !== 'application/pdf' && !selected.name.toLowerCase().endsWith('.pdf')) {
+                setMsg('❌ Hanya file PDF yang diperbolehkan');
+                setFile(null);
+                return;
+            }
+            if (selected.size > 10 * 1024 * 1024) {
+                setMsg('❌ Ukuran file maksimal adalah 10MB');
+                setFile(null);
+                return;
+            }
+            setFile(selected);
+            setMsg('');
+        }
+    };
 
     const handleSubmit = () => {
-        if (!answer.trim()) return;
+        // Validasi
+        if (submissionType === 'TEXT' && !answer.trim()) {
+            setMsg('❌ Tuliskan jawaban Anda terlebih dahulu');
+            return;
+        }
+        if (submissionType === 'FILE' && !file && !fileUrl) {
+            setMsg('❌ Silakan unggah file PDF tugas Anda');
+            return;
+        }
+        if (submissionType === 'BOTH' && !answer.trim() && !file && !fileUrl) {
+            setMsg('❌ Silakan tulis jawaban teks dan unggah file PDF');
+            return;
+        }
+
         startTransition(async () => {
             setMsg('');
-            const res = await submitAssignment(assignment.id, answer);
+            let finalFileUrl = fileUrl;
+
+            // Jika ada file baru yang dipilih, unggah terlebih dahulu
+            if (file) {
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const uploadRes = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    const uploadData = await uploadRes.json();
+                    if (!uploadRes.ok || uploadData.error) {
+                        setMsg('❌ Gagal mengunggah file: ' + (uploadData.error || 'Terjadi kesalahan'));
+                        return;
+                    }
+                    finalFileUrl = uploadData.fileUrl;
+                    setFileUrl(finalFileUrl);
+                } catch (err: any) {
+                    setMsg('❌ Gagal mengunggah file: ' + err.message);
+                    return;
+                }
+            }
+
+            const res = await submitAssignment(assignment.id, answer, finalFileUrl);
             if (res.error) setMsg('❌ ' + res.error);
-            else setMsg('✓ ' + res.message);
+            else {
+                setMsg('✓ ' + res.message);
+                setFile(null);
+                window.location.reload();
+            }
         });
     };
 
     return (
-        <div className={`glass-panel rounded-2xl overflow-hidden ${submitted ? 'ring-2 ring-emerald-500/20' : ''}`}>
+        <div className={`glass-panel rounded-2xl overflow-hidden ${submitted ? 'ring-2 ring-blue-500/20' : ''}`}>
             <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                             {graded ? (
-                                <span className="flex items-center gap-1 text-xs font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 rounded-full">
+                                <span className="flex items-center gap-1 text-xs font-bold bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 px-2.5 py-1 rounded-full">
                                     <Star size={11} /> Dinilai: {assignment.mySubmission.score}/{assignment.maxScore}
                                 </span>
                             ) : submitted ? (
@@ -306,6 +369,9 @@ function AssignmentCard({ assignment }: { assignment: any }) {
                                     <AlertCircle size={11} /> Belum Dikumpulkan
                                 </span>
                             )}
+                            <span className="text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2.5 py-1 rounded-full">
+                                Tipe: {submissionType === 'TEXT' ? 'Teks' : submissionType === 'FILE' ? 'File PDF' : 'Teks & PDF'}
+                            </span>
                             {assignment.dueDate && (
                                 <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${isOverdue && !submitted ? 'text-red-600 bg-red-50 dark:bg-red-500/10' : 'text-slate-500 bg-slate-100 dark:bg-slate-800'}`}>
                                     <Clock size={11} />
@@ -332,37 +398,107 @@ function AssignmentCard({ assignment }: { assignment: any }) {
                         </div>
                     )}
 
-                    {/* Feedback jika sudah dinilai */}
-                    {graded && assignment.mySubmission?.feedback && (
-                        <div className="p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl">
-                            <p className="text-xs font-bold text-emerald-600 uppercase mb-1">Feedback Guru</p>
-                            <p className="text-sm text-emerald-700 dark:text-emerald-400">{assignment.mySubmission.feedback}</p>
+                    {/* Lampiran Soal dari Guru */}
+                    {assignment.attachmentUrl && (
+                        <div className="p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-100/30 dark:border-blue-900/30">
+                            <p className="text-xs font-bold text-blue-500 uppercase mb-2">Lampiran Tugas</p>
+                            <a 
+                                href={assignment.attachmentUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                            >
+                                📥 Download Lampiran Tugas ({assignment.attachmentUrl.split('/').pop()})
+                            </a>
                         </div>
                     )}
 
-                    {/* Textarea jawaban */}
+                    {/* Feedback jika sudah dinilai */}
+                    {graded && assignment.mySubmission?.feedback && (
+                        <div className="p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl">
+                            <p className="text-xs font-bold text-blue-600 uppercase mb-1">Feedback Guru</p>
+                            <p className="text-sm text-blue-700 dark:text-blue-400">{assignment.mySubmission.feedback}</p>
+                        </div>
+                    )}
+
+                    {/* File PDF terlampir jika sudah dikumpulkan */}
+                    {submitted && assignment.mySubmission?.fileUrl && (
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <FileText size={16} className="text-blue-500 shrink-0" />
+                                <div className="min-w-0">
+                                    <p className="text-xs font-bold text-slate-500 uppercase">File Terlampir</p>
+                                    <p className="text-sm text-slate-800 dark:text-slate-200 truncate max-w-[240px]">
+                                        {assignment.mySubmission.fileUrl.split('/').pop() || 'tugas.pdf'}
+                                    </p>
+                                </div>
+                            </div>
+                            <a href={assignment.mySubmission.fileUrl} target="_blank" rel="noopener noreferrer" className="px-3.5 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold rounded-xl shadow-sm transition-colors">
+                                Buka PDF ↗
+                            </a>
+                        </div>
+                    )}
+
+                    {/* Jawaban Teks terkirim jika sudah dikumpulkan */}
+                    {submitted && assignment.mySubmission?.content && (
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                            <p className="text-xs font-bold text-slate-500 uppercase mb-1">Jawaban Teks Anda</p>
+                            <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{assignment.mySubmission.content}</p>
+                        </div>
+                    )}
+
+                    {/* Form input pengumpulan jika belum dinilai */}
                     {!graded && (
-                        <div className="space-y-3">
-                            <label className="text-xs font-bold text-slate-500 uppercase block">Jawaban Saya</label>
-                            <textarea
-                                value={answer}
-                                onChange={e => setAnswer(e.target.value)}
-                                rows={5}
-                                placeholder="Tuliskan jawaban Anda di sini..."
-                                disabled={isOverdue && !submitted}
-                                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
-                            />
-                            {msg && <p className={`text-sm font-medium ${msg.startsWith('✓') ? 'text-emerald-600' : 'text-red-500'}`}>{msg}</p>}
+                        <div className="space-y-4">
+                            {/* Input Teks */}
+                            {(submissionType === 'TEXT' || submissionType === 'BOTH') && (
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase block">Jawaban Teks</label>
+                                    <textarea
+                                        value={answer}
+                                        onChange={e => setAnswer(e.target.value)}
+                                        rows={5}
+                                        placeholder="Tuliskan jawaban Anda di sini..."
+                                        disabled={isOverdue && !submitted}
+                                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Input File */}
+                            {(submissionType === 'FILE' || submissionType === 'BOTH') && (
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase block">File Lampiran (PDF)</label>
+                                    {!(isOverdue && !submitted) ? (
+                                        <div className="flex items-center gap-3">
+                                            <label className="cursor-pointer px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/60 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-2">
+                                                <FileText size={14} />
+                                                Pilih File PDF
+                                                <input type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
+                                            </label>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px]">
+                                                {file ? file.name : fileUrl ? fileUrl.split('/').pop() : 'Belum ada file terpilih'}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-slate-400 italic">File tidak dapat diunggah setelah tenggat waktu.</p>
+                                    )}
+                                </div>
+                            )}
+
+                            {msg && <p className={`text-sm font-medium ${msg.startsWith('✓') ? 'text-blue-600' : 'text-red-500'}`}>{msg}</p>}
+                            
                             {!(isOverdue && !submitted) && (
                                 <button
                                     onClick={handleSubmit}
-                                    disabled={!answer.trim() || isPending}
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm disabled:opacity-50 transition-colors shadow-[0_4px_12px_rgba(37,99,235,0.3)]"
+                                    disabled={isPending}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm disabled:opacity-50 transition-colors shadow-[0_4px_12px_rgba(37,99,235,0.3)] w-fit"
                                 >
                                     {isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                                     {submitted ? 'Perbarui Jawaban' : 'Kumpulkan Tugas'}
                                 </button>
                             )}
+                            
                             {isOverdue && !submitted && (
                                 <p className="text-sm text-red-500 font-medium flex items-center gap-1"><AlertCircle size={14} /> Tenggat waktu sudah lewat. Tugas tidak dapat dikumpulkan.</p>
                             )}
@@ -376,6 +512,7 @@ function AssignmentCard({ assignment }: { assignment: any }) {
 
 function QuizListTab({ quizzes, weekModules }: { quizzes: any[]; weekModules: any[] }) {
     const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
+    const [isPending, startTransition] = useTransition();
     const selectedQuiz = quizzes.find(q => q.id === selectedQuizId);
 
     if (quizzes.length === 0) return (
@@ -407,6 +544,23 @@ function QuizListTab({ quizzes, weekModules }: { quizzes: any[]; weekModules: an
         const hoursLeft = deadline ? (deadline.getTime() - now.getTime()) / 3600000 : null;
         const canTake = !isExpired;
 
+        const maxAttempts = quiz.maxAttempts ?? 1;
+        const attemptsCount = attempt?.attemptsCount ?? 0;
+        const canRetake = done && (maxAttempts === 0 || attemptsCount < maxAttempts);
+
+        const handleRetake = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            if (!confirm("Apakah Anda yakin ingin mengerjakan ulang quiz ini? Jawaban dan nilai sebelumnya akan dihapus.")) return;
+            startTransition(async () => {
+                const res = await retakeQuiz(quiz.id);
+                if (res.error) {
+                    alert(res.error);
+                } else {
+                    setSelectedQuizId(quiz.id);
+                }
+            });
+        };
+
         let deadlineBadge = null;
         if (deadline) {
             if (isExpired) {
@@ -419,9 +573,9 @@ function QuizListTab({ quizzes, weekModules }: { quizzes: any[]; weekModules: an
         }
 
         return (
-            <div key={quiz.id} className={`glass-panel rounded-2xl p-5 flex items-center justify-between gap-4 hover-lift ${done ? 'ring-2 ring-emerald-500/20' : isExpired && !done ? 'opacity-60' : ''}`}>
+            <div key={quiz.id} className={`glass-panel rounded-2xl p-5 flex items-center justify-between gap-4 hover-lift ${done ? 'ring-2 ring-blue-500/20' : isExpired && !done ? 'opacity-60' : ''}`}>
                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className={done ? 'w-12 h-12 rounded-2xl flex items-center justify-center bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 shrink-0' : 'w-12 h-12 rounded-2xl flex items-center justify-center bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 shrink-0'}>
+                    <div className={done ? 'w-12 h-12 rounded-2xl flex items-center justify-center bg-blue-100 dark:bg-blue-500/20 text-blue-600 shrink-0' : 'w-12 h-12 rounded-2xl flex items-center justify-center bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 shrink-0'}>
                         {done ? <CheckCircle2 size={24} /> : <CheckSquare size={24} />}
                     </div>
                     <div className="min-w-0">
@@ -429,15 +583,39 @@ function QuizListTab({ quizzes, weekModules }: { quizzes: any[]; weekModules: an
                         <div className="flex flex-wrap items-center gap-2 mt-1">
                             <span className="text-xs text-slate-500">{quiz.questions?.length ?? 0} soal &middot; {totalPoints} poin</span>
                             {quiz.timeLimit && <span className="text-xs text-slate-500">⏱ {quiz.timeLimit} menit</span>}
-                            {done && <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Skor: {attempt.score}/{totalPoints}</span>}
+                            {done && (
+                                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                    Skor: {attempt.score}/{totalPoints} {attempt.attemptsCount > 1 ? `(Percobaan ke-${attempt.attemptsCount})` : ''}
+                                </span>
+                            )}
+                            {quiz.maxAttempts > 0 && (
+                                <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                    Maks Percobaan: {quiz.maxAttempts}x
+                                </span>
+                            )}
                             {deadlineBadge}
                         </div>
                     </div>
                 </div>
                 {canTake || done ? (
-                    <button onClick={() => setSelectedQuizId(quiz.id)} className={done ? 'px-4 py-2.5 rounded-xl font-semibold text-sm bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 transition-all shrink-0' : 'px-4 py-2.5 rounded-xl font-semibold text-sm bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg transition-all shrink-0'}>
-                        {done ? 'Lihat Hasil' : 'Kerjakan Quiz'}
-                    </button>
+                    <div className="flex gap-2 shrink-0">
+                        {done && (
+                            <button onClick={() => setSelectedQuizId(quiz.id)} className="px-4 py-2.5 rounded-xl font-semibold text-sm bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 transition-all">
+                                Lihat Hasil
+                            </button>
+                        )}
+                        {canRetake && (
+                            <button onClick={handleRetake} disabled={isPending} className="px-4 py-2.5 rounded-xl font-semibold text-sm bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg transition-all flex items-center gap-1.5 disabled:opacity-50">
+                                {isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+                                Kerjakan Ulang
+                            </button>
+                        )}
+                        {!done && (
+                            <button onClick={() => setSelectedQuizId(quiz.id)} className="px-4 py-2.5 rounded-xl font-semibold text-sm bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg transition-all">
+                                Kerjakan Quiz
+                            </button>
+                        )}
+                    </div>
                 ) : (
                     <span className="px-4 py-2.5 rounded-xl font-semibold text-sm bg-red-50 dark:bg-red-500/10 text-red-500 shrink-0 cursor-not-allowed">Waktu Habis</span>
                 )}

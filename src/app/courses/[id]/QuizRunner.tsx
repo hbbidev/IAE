@@ -93,7 +93,7 @@ export default function QuizRunner({ quiz, previousAttempt }: { quiz: any; previ
 
     if (phase === 'result') return (
         <div className="glass-panel rounded-3xl p-8 flex flex-col items-center text-center max-w-lg mx-auto">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-5 ${(result?.score ?? 0) / totalPoints >= 0.7 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-600'}`}>
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-5 ${(result?.score ?? 0) / totalPoints >= 0.7 ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-600' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-600'}`}>
                 {(result?.score ?? 0) / totalPoints >= 0.7 ? <CheckCircle2 size={40} /> : <AlertTriangle size={40} />}
             </div>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1">
@@ -105,7 +105,7 @@ export default function QuizRunner({ quiz, previousAttempt }: { quiz: any; previ
                 <div className="text-slate-500 text-sm mt-1">dari {totalPoints} poin</div>
             </div>
             <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 mb-2">
-                <div className={`h-3 rounded-full transition-all ${(result?.score ?? 0) / totalPoints >= 0.7 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${Math.round(((result?.score ?? 0) / totalPoints) * 100)}%` }} />
+                <div className={`h-3 rounded-full transition-all ${(result?.score ?? 0) / totalPoints >= 0.7 ? 'bg-blue-500' : 'bg-amber-500'}`} style={{ width: `${Math.round(((result?.score ?? 0) / totalPoints) * 100)}%` }} />
             </div>
             <p className="text-sm text-slate-500">{Math.round(((result?.score ?? 0) / totalPoints) * 100)}%</p>
             {previousAttempt && previousAttempt.answers?.some((a: any) => a.question?.type === 'ESSAY' && a.score === null) && (
@@ -154,20 +154,27 @@ export default function QuizRunner({ quiz, previousAttempt }: { quiz: any; previ
                 </div>
 
                 {/* Answer Input */}
-                {q.type === 'MULTIPLE_CHOICE' && q.options && (
-                    <div className="space-y-2">
-                        {(q.options as string[]).map((opt: string, i: number) => (
-                            <button key={i} onClick={() => setAnswers(prev => ({ ...prev, [q.id]: String(i) }))}
-                                className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition-all ${answers[q.id] === String(i) ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300 bg-white dark:bg-slate-800'}`}
-                            >
-                                <span className={`w-7 h-7 rounded-full border-2 text-xs font-bold flex items-center justify-center shrink-0 ${answers[q.id] === String(i) ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-slate-300 dark:border-slate-600 text-slate-500'}`}>
-                                    {['A','B','C','D'][i]}
-                                </span>
-                                <span className={`text-sm ${answers[q.id] === String(i) ? 'text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-slate-700 dark:text-slate-300'}`}>{opt}</span>
-                            </button>
-                        ))}
-                    </div>
-                )}
+                {q.type === 'MULTIPLE_CHOICE' && q.options && (() => {
+                    let optsList: string[] = [];
+                    try {
+                        optsList = typeof q.options === 'string' ? JSON.parse(q.options) : q.options;
+                    } catch (_) {}
+                    if (!Array.isArray(optsList)) optsList = [];
+                    return (
+                        <div className="space-y-2">
+                            {optsList.map((opt: string, i: number) => (
+                                <button key={i} onClick={() => setAnswers(prev => ({ ...prev, [q.id]: String(i) }))}
+                                    className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition-all ${answers[q.id] === String(i) ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300 bg-white dark:bg-slate-800'}`}
+                                >
+                                    <span className={`w-7 h-7 rounded-full border-2 text-xs font-bold flex items-center justify-center shrink-0 ${answers[q.id] === String(i) ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-slate-300 dark:border-slate-600 text-slate-500'}`}>
+                                        {['A','B','C','D'][i]}
+                                    </span>
+                                    <span className={`text-sm ${answers[q.id] === String(i) ? 'text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-slate-700 dark:text-slate-300'}`}>{opt}</span>
+                                </button>
+                            ))}
+                        </div>
+                    );
+                })()}
 
                 {(q.type === 'ESSAY') && (
                     <textarea value={answers[q.id] ?? ''} onChange={e => setAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
@@ -194,7 +201,7 @@ export default function QuizRunner({ quiz, previousAttempt }: { quiz: any; previ
                 <div className="flex gap-1.5">
                     {questions.map((_: any, i: number) => (
                         <button key={i} onClick={() => setCurrentQ(i)}
-                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors ${i === currentQ ? 'bg-indigo-600 text-white' : answers[questions[i]?.id]?.trim() ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors ${i === currentQ ? 'bg-indigo-600 text-white' : answers[questions[i]?.id]?.trim() ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
                             {i + 1}
                         </button>
                     ))}
@@ -205,7 +212,7 @@ export default function QuizRunner({ quiz, previousAttempt }: { quiz: any; previ
                         Selanjutnya <ChevronRight size={16} />
                     </button>
                 ) : (
-                    <button onClick={handleSubmit} disabled={isPending} className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm disabled:opacity-50 shadow-[0_4px_12px_rgba(5,150,105,0.3)]">
+                    <button onClick={handleSubmit} disabled={isPending} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm disabled:opacity-50 shadow-[0_4px_12px_rgba(37,99,235,0.3)]">
                         {isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                         Kumpulkan Quiz
                     </button>

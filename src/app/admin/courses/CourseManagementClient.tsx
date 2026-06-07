@@ -188,7 +188,7 @@ function CourseFormModal({ teachers, course, onClose }: { teachers: any[]; cours
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     {error && <div className="p-3 bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-sm font-medium rounded-xl border border-red-200">{error}</div>}
-                    {success && <div className="p-3 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 text-sm font-medium rounded-xl border border-emerald-200">{success}</div>}
+                    {success && <div className="p-3 bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 text-sm font-medium rounded-xl border border-blue-200">{success}</div>}
                     
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Judul Mata Kuliah / Kursus</label>

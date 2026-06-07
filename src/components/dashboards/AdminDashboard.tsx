@@ -1,9 +1,40 @@
 "use client";
 
+import React, { useState, useEffect } from 'react';
 import StatCard from '@/components/StatCard';
 import { Users, Server, ShieldCheck, Activity, Sparkles } from 'lucide-react';
 
 export default function AdminDashboard({ name, totalUsers, totalCourses }: { name: string, totalUsers: number, totalCourses: number }) {
+  const [data, setData] = useState({
+      totalUsers,
+      totalCourses,
+      serverUptime: "99.9%"
+  });
+
+  useEffect(() => {
+      const fetchUpdates = async () => {
+          try {
+              const res = await fetch('/api/dashboard');
+              if (res.ok) {
+                  const latest = await res.json();
+                  if (latest.role === 'ADMIN') {
+                      setData({
+                          totalUsers: latest.totalUsers,
+                          totalCourses: latest.totalCourses,
+                          serverUptime: latest.serverUptime,
+                      });
+                  }
+              }
+          } catch (err) {
+              console.error("Error polling admin dashboard:", err);
+          }
+      };
+
+      const interval = setInterval(fetchUpdates, 5000);
+      fetchUpdates();
+      return () => clearInterval(interval);
+  }, []);
+
   return (
     <>
       <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-3xl p-8 text-white shadow-[0_20px_40px_-15px_rgba(15,23,42,0.5)] mb-8 hover-lift relative overflow-hidden">
@@ -16,27 +47,27 @@ export default function AdminDashboard({ name, totalUsers, totalCourses }: { nam
         <div className="absolute bottom-0 right-1/4 translate-y-1/2 w-48 h-48 bg-blue-500/20 rounded-full blur-2xl animate-[float_5s_ease-in-out_infinite]"></div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <StatCard
           title="Total Pengguna"
-          value={totalUsers}
-          subtitle="Murid, Guru & Admin"
-          icon={Users}
+          value={data.totalUsers}
           color="blue"
+          trend="up"
+          trendValue="+15.0%"
         />
         <StatCard
           title="Total Kursus"
-          value={totalCourses}
-          subtitle="Aktif di platform"
-          icon={Server}
+          value={data.totalCourses}
           color="purple"
+          trend="up"
+          trendValue="+8.0%"
         />
         <StatCard
           title="Server Uptime"
-          value="99.9%"
-          subtitle="Aman"
-          icon={Activity}
-          color="emerald"
+          value={data.serverUptime}
+          color="rose"
+          trend="up"
+          trendValue="+0.01%"
         />
       </div>
 

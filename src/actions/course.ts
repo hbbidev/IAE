@@ -67,3 +67,40 @@ export async function deleteCourse(id: string) {
     return { error: 'Gagal menghapus: ' + err.message }
   }
 }
+
+export async function getMyEnrolledOrTaughtCourses() {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session) return { error: 'Tidak terautentikasi' }
+
+    const { id: userId, role } = session.user as any
+
+    if (role === 'STUDENT') {
+      const enrollments = await prisma.enrollment.findMany({
+        where: { userId },
+        include: {
+          course: {
+            select: { id: true, title: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      })
+      return { success: true, courses: enrollments.map(e => e.course) }
+    } else if (role === 'TEACHER') {
+      const courses = await prisma.course.findMany({
+        where: { teacherId: userId },
+        select: { id: true, title: true },
+        orderBy: { createdAt: 'desc' }
+      })
+      return { success: true, courses }
+    } else {
+      const courses = await prisma.course.findMany({
+        select: { id: true, title: true },
+        orderBy: { createdAt: 'desc' }
+      })
+      return { success: true, courses }
+    }
+  } catch (err: any) {
+    return { error: 'Gagal memuat kursus: ' + err.message }
+  }
+}

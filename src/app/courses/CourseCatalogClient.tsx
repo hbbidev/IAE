@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { BookOpen, Users, UserCheck, UserPlus, Loader2, PlayCircle, CheckCircle2, ChevronRight } from 'lucide-react';
@@ -17,14 +16,14 @@ type Course = {
 export default function CourseCatalogClient({ courses }: { courses: Course[] }) {
     return (
         <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Header */}
-            <div className="flex items-center gap-4 mb-8">
-                <div className="p-3 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl shadow-sm">
-                    <BookOpen size={28} />
+            {/* Header (ByeWind minimalist styling) */}
+            <div className="flex items-center gap-3 sm:gap-4 mb-6">
+                <div className="p-2.5 sm:p-3 bg-[#E0F2FE] dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 rounded-2xl">
+                    <BookOpen size={20} className="sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Katalog Kursus</h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">
+                    <h1 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">Katalog Kursus</h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-[10px] sm:text-xs">
                         Temukan dan daftar kelasmu — {courses.filter(c => c.enrolled).length} dari {courses.length} kursus diikuti
                     </p>
                 </div>
@@ -32,15 +31,15 @@ export default function CourseCatalogClient({ courses }: { courses: Course[] }) 
 
             {/* Course Grid */}
             {courses.length === 0 ? (
-                <div className="flex-1 glass-panel rounded-3xl flex flex-col items-center justify-center text-center p-12">
-                    <div className="w-20 h-20 bg-blue-50 dark:bg-slate-700 rounded-full flex items-center justify-center mb-6 text-blue-400">
-                        <BookOpen size={32} />
+                <div className="flex-1 glass-panel rounded-2xl flex flex-col items-center justify-center text-center p-12">
+                    <div className="w-16 h-16 bg-[#E0F2FE] dark:bg-blue-950/20 rounded-full flex items-center justify-center mb-4 text-blue-500">
+                        <BookOpen size={28} />
                     </div>
-                    <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-200 mb-2">Belum Ada Kursus Tersedia</h2>
-                    <p className="text-slate-500 dark:text-slate-400 max-w-sm">Administrator belum menambahkan kursus. Hubungi admin untuk informasi lebih lanjut.</p>
+                    <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Belum Ada Kursus Tersedia</h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs">Administrator belum menambahkan kursus. Hubungi admin untuk informasi lebih lanjut.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
                     {courses.map(course => (
                         <CourseCard key={course.id} course={course} />
                     ))}
@@ -69,42 +68,42 @@ function CourseCard({ course }: { course: Course }) {
     };
 
     return (
-        <div className={`glass-panel rounded-3xl p-6 flex flex-col gap-4 transition-all duration-300 hover-lift ${optimisticEnrolled ? 'ring-2 ring-blue-500/30' : ''}`}>
+        <div className="glass-panel rounded-2xl p-5 sm:p-6 flex flex-col gap-3.5 sm:gap-4 transition-all duration-300 hover-lift">
             {/* Top */}
-            <div className="flex items-start justify-between gap-3">
-                <div className="w-12 h-12 rounded-2xl accent-bg flex items-center justify-center text-white shrink-0 shadow-lg">
-                    <PlayCircle size={22} />
+            <div className="flex items-center justify-between gap-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#E0F2FE] dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                    <PlayCircle size={18} className="sm:w-5 sm:h-5" />
                 </div>
                 {optimisticEnrolled && (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full">
-                        <CheckCircle2 size={12} /> Terdaftar
+                    <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold bg-[#E0F2FE] dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 px-2.5 py-0.5 sm:py-1 rounded-full">
+                        <CheckCircle2 size={10} /> Terdaftar
                     </span>
                 )}
             </div>
 
             {/* Title & Desc */}
             <div className="flex-1">
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg leading-tight mb-1.5">{course.title}</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-2">
+                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight mb-1">{course.title}</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-xs line-clamp-2 leading-relaxed">
                     {course.description || 'Tidak ada deskripsi tersedia.'}
                 </p>
             </div>
 
             {/* Meta */}
-            <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 pb-4 border-b border-slate-100 dark:border-slate-700/50">
-                <span className="flex items-center gap-1.5">
-                    <UserCheck size={14} />
-                    {course.teacher.name}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <span className="flex items-center gap-1.5 truncate">
+                    <UserCheck size={12} className="text-slate-400 shrink-0" />
+                    <span className="truncate">{course.teacher.name}</span>
                 </span>
-                <span className="flex items-center gap-1.5">
-                    <Users size={14} />
+                <span className="flex items-center gap-1.5 shrink-0">
+                    <Users size={12} className="text-slate-400" />
                     {course._count.enrollments} peserta
                 </span>
             </div>
 
             {/* Error feedback */}
             {feedback && (
-                <p className="text-xs text-red-500 dark:text-red-400 -mt-1">{feedback}</p>
+                <p className="text-[10px] font-bold text-red-500 dark:text-red-400 -mt-2">{feedback}</p>
             )}
 
             {/* CTA Buttons */}
@@ -112,17 +111,17 @@ function CourseCard({ course }: { course: Course }) {
                 {optimisticEnrolled ? (
                     <Link
                         href={`/courses/${course.id}`}
-                        className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-blue-600 text-white shadow-[0_4px_12px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.2)] hover:-translate-y-0.5 transition-all"
+                        className="w-full py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all hover:scale-[1.02]"
                     >
-                        <PlayCircle size={16} /> Buka Kursus <ChevronRight size={14} />
+                        <PlayCircle size={14} /> Buka Kursus <ChevronRight size={12} />
                     </Link>
                 ) : (
                     <button
                         onClick={handleEnroll}
                         disabled={isPending}
-                        className="w-full py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-60 bg-blue-600 text-white shadow-[0_4px_12px_hsl(var(--accent-h)_var(--accent-s)_var(--accent-l)_/_0.2)] hover:-translate-y-0.5"
+                        className="w-full py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all hover:scale-[1.02] disabled:opacity-60"
                     >
-                        {isPending ? <Loader2 size={16} className="animate-spin" /> : <><UserPlus size={16} /> Daftar Kursus Ini</>}
+                        {isPending ? <Loader2 size={14} className="animate-spin" /> : <><UserPlus size={14} /> Daftar Kursus Ini</>}
                     </button>
                 )}
             </div>

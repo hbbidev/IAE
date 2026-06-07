@@ -1,54 +1,57 @@
-import React, { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Search, Bell, ChevronDown, Menu, LogOut, User, Settings } from 'lucide-react';
-import { signOut, useSession } from 'next-auth/react';
+"use client";
+
+import React, { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Search, Info, Menu, Star } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { ThemeToggle } from './ThemeToggle';
 
-export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
+export default function Header({ onMenuClick, onNotificationClick }: { onMenuClick?: () => void, onNotificationClick?: () => void }) {
     const { data: session } = useSession();
-    const role = (session?.user as any)?.role || 'STUDENT';
-    const roleDisplayMap: Record<string, string> = {
-        'STUDENT': 'Siswa Terdaftar',
-        'TEACHER': 'Tenaga Pengajar',
-        'ADMIN': 'Administrator Sistem'
-    };
-    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const pathname = usePathname();
     const [searchQuery, setSearchQuery] = useState('');
-    const dropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
 
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsProfileOpen(false);
-            }
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    // Map pathname to breadcrumbs (ByeWind top left style)
+    const pathMap: Record<string, string[]> = {
+        '/': ['Dasbor', 'Default'],
+        '/courses': ['Kursus', 'Daftar Kursus'],
+        '/teacher/courses': ['Kursus', 'Kelas Saya'],
+        '/admin/courses': ['Kursus', 'Manajemen Kursus'],
+        '/assignments': ['Akademik', 'Tugas'],
+        '/grades': ['Akademik', 'Nilai'],
+        '/schedule': ['Akademik', 'Jadwal'],
+        '/admin/users': ['Sistem', 'Hak Akses'],
+        '/settings': ['Sistem', 'Pengaturan'],
+    };
+    const breadcrumbs = pathMap[pathname] || ['LMS', 'Halaman'];
 
     return (
-        <header className="flex items-center justify-between h-20 mb-8 z-10 relative gap-4">
-            {/* Mobile: hamburger + logo */}
-            <div className="flex items-center gap-3 lg:hidden">
-                <button
-                    onClick={onMenuClick}
-                    className="glass-panel p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none hover-lift"
-                >
-                    <Menu size={24} />
-                </button>
-                <div className="flex items-center gap-2">
-                    <Image src="/logo.png" alt="pErC lms" width={32} height={32} className="object-contain mix-blend-multiply dark:mix-blend-screen" />
-                    <span className="font-bold text-lg text-slate-900 dark:text-white">pErC lms</span>
+        <header className="flex items-center justify-between h-14 mb-6 z-30 relative gap-4">
+            {/* Mobile Hamburger Menu */}
+            <button
+                onClick={onMenuClick}
+                className="lg:hidden p-2 rounded-xl bg-white dark:bg-slate-800 text-slate-500 hover:text-blue-600 shadow-sm"
+            >
+                <Menu size={20} />
+            </button>
+
+            {/* Left Column: Breadcrumbs & Favorite star (mockup design) */}
+            <div className="hidden lg:flex items-center gap-2">
+                <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 font-semibold select-none">
+                    <span className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">pErC lms</span>
+                    <span>/</span>
+                    <span className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">{breadcrumbs[0]}</span>
+                    <span>/</span>
+                    <span className="text-slate-800 dark:text-slate-200 font-bold">{breadcrumbs[1]}</span>
                 </div>
             </div>
 
-            {/* Desktop: search bar */}
-            <div className="flex items-center flex-1 max-w-xl hidden sm:flex">
-                <div className="relative w-full group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={20} />
+            {/* Right Column: Search & Action Icons */}
+            <div className="flex items-center gap-4 ml-auto">
+                {/* Search input (centered-right borderless styling) */}
+                <div className="relative w-48 sm:w-64 group">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                     <input
                         type="text"
                         value={searchQuery}
@@ -58,63 +61,24 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                                 router.push(`/courses?q=${encodeURIComponent(searchQuery.trim())}`);
                             }
                         }}
-                        placeholder="Cari kelas, materi, tugas... (Enter)"
-                        className="w-full glass-panel h-14 pl-12 pr-4 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 group-hover:-translate-y-0.5 placeholder:text-slate-400/80 text-slate-700 dark:text-slate-200"
+                        placeholder="Search..."
+                        className="w-full h-9 pl-10 pr-4 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-transparent focus:outline-none focus:ring-1 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-slate-900 transition-all text-xs text-slate-700 dark:text-slate-200 placeholder:text-slate-400 font-medium"
                     />
                 </div>
-            </div>
 
-            <div className="flex items-center gap-4 sm:gap-6">
-                <div className="hover-lift">
+                {/* Theme Toggle Widget */}
+                <div className="hover:scale-105 transition-transform">
                     <ThemeToggle />
                 </div>
 
-                <Link href="/notifications" className="relative p-3.5 glass-panel rounded-2xl hover-lift transition-all duration-300 text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white">
-                    <Bell size={20} />
-                    <span className="absolute top-3 right-3 w-2.5 h-2.5 accent-bg rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
-                </Link>
-
-                <div className="relative" ref={dropdownRef}>
-                    <div
-                        onClick={() => setIsProfileOpen(!isProfileOpen)}
-                        className="flex items-center gap-3 glass-panel p-2 pr-4 rounded-full cursor-pointer hover-lift transition-all duration-300"
-                        tabIndex={0}
-                    >
-                        <div className="w-10 h-10 rounded-full accent-tint overflow-hidden transition-all">
-                            <img
-                                src={`https://api.dicebear.com/7.x/notionists/svg?seed=${session?.user?.name || 'Siswa'}`}
-                                alt="User avatar"
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-                        <div className="flex flex-col hidden sm:flex">
-                            <span className="text-sm font-bold text-slate-900 dark:text-white">{session?.user?.name || 'Nama Pengguna'}</span>
-                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{roleDisplayMap[role]}</span>
-                        </div>
-                        <ChevronDown size={16} className={`text-slate-400 ml-1 hidden sm:block transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`} />
-                    </div>
-
-                    {isProfileOpen && (
-                        <div className="absolute right-0 mt-3 w-52 glass-panel !bg-white/90 dark:!bg-slate-900/90 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200 z-50">
-                            <div className="p-2 flex flex-col gap-1">
-                                <Link
-                                    href="/settings"
-                                    onClick={() => setIsProfileOpen(false)}
-                                    className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-blue-600 dark:hover:text-blue-400 rounded-xl transition-colors"
-                                >
-                                    <User size={16} /> Profil &amp; Pengaturan
-                                </Link>
-                                <div className="h-px bg-slate-200 dark:bg-slate-700/50 my-1"></div>
-                                <button
-                                    onClick={() => signOut({ callbackUrl: '/login' })}
-                                    className="flex items-center gap-2 w-full px-3 py-2 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
-                                >
-                                    <LogOut size={16} /> Keluar
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
+                {/* Notification Badge link */}
+                <button
+                    onClick={onNotificationClick}
+                    className="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors relative"
+                >
+                    <Info size={18} />
+                    <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                </button>
             </div>
         </header>
     );

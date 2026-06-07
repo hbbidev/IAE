@@ -64,14 +64,14 @@ export default async function TeacherCourseDetailPage({ params }: { params: Prom
             host: '127.0.0.1',
             user: 'root',
             password: '',
-            database: 'db_percik_integrasi',
+            database: 'percik_db',
             port: 3306
         });
 
         const [rows] = await connection.execute(
             `SELECT a.id, a.user_id, a.attendance_date, a.status, a.is_verified, a.created_at, u.name as student_name, u.email as student_email 
              FROM attendances a 
-             JOIN users u ON a.user_id = u.id 
+             JOIN user u ON a.user_id = u.id 
              WHERE a.course_id = ? 
              ORDER BY a.attendance_date DESC`,
             [course.id]

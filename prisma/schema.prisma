@@ -19,10 +19,12 @@ enum Role {
 model User {
   id        String       @id @default(cuid())
   nim       String?      @unique
+  nisn      String?
   name      String
   email     String       @unique
   password  String
   role      Role         @default(STUDENT)
+  kelas     String?
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
@@ -35,6 +37,7 @@ model User {
   courses      Course[]     @relation("TeacherCourses")
   submissions  Submission[]
   quizAttempts QuizAttempt[]
+  attendances  Attendance[]
 }
 
 enum QuestionType {
@@ -60,6 +63,7 @@ model Course {
   quizzes     Quiz[]
   weekModules WeekModule[]
   schedules   Schedule[]
+  attendances Attendance[]
 }
 
 model Quiz {
@@ -69,6 +73,7 @@ model Quiz {
   timeLimit   Int?      // menit, null = tidak terbatas
   deadline    DateTime? // batas waktu pengerjaan
   isPublished Boolean   @default(false)
+  maxAttempts Int       @default(1)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -95,10 +100,11 @@ model Question {
 }
 
 model QuizAttempt {
-  id          String    @id @default(cuid())
-  startedAt   DateTime  @default(now())
-  submittedAt DateTime?
-  score       Int?
+  id            String    @id @default(cuid())
+  startedAt     DateTime  @default(now())
+  submittedAt   DateTime?
+  score         Int?
+  attemptsCount Int       @default(1)
 
   quizId      String
   quiz        Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
@@ -158,6 +164,8 @@ model Assignment {
   description String?    @db.Text
   dueDate     DateTime?
   maxScore    Int        @default(100)
+  submissionType String  @default("TEXT")
+  attachmentUrl  String? @db.Text
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -171,6 +179,7 @@ model Assignment {
 model Submission {
   id           String     @id @default(cuid())
   content      String?    @db.Text
+  fileUrl      String?    @db.Text
   score        Int?
   feedback     String?    @db.Text
   submittedAt  DateTime   @default(now())
@@ -208,4 +217,26 @@ model Schedule {
 
   courseId   String
   course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model Attendance {
+  id                  Int       @id @default(autoincrement())
+  userId              String    @map("user_id")
+  subjectName         String    @map("subject_name")
+  courseId            String?   @map("course_id")
+  attendanceDate      DateTime  @db.Date @map("attendance_date")
+  status              String    // Enum value
+  isVerified          Boolean   @default(false) @map("is_verified")
+  latitude            Float?
+  longitude           Float?
+  locationName        String?   @map("location_name")
+  createdAt           DateTime? @map("created_at")
+  updatedAt           DateTime? @map("updated_at")
+  absenceLetterPath   String?   @map("absence_letter_path")
+  absenceReason       String?   @map("absence_reason")
+
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course              Course?   @relation(fields: [courseId], references: [id], onDelete: SetNull)
+
+  @@map("attendances")
 }

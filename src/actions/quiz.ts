@@ -19,7 +19,7 @@ async function verifyTeacher(courseId: string) {
 
 // =================== QUIZ CRUD (TEACHER) ===================
 
-export async function createQuiz(courseId: string, title: string, description: string, timeLimit: number | null, deadline: string | null = null, weekModuleId: string | null = null) {
+export async function createQuiz(courseId: string, title: string, description: string, timeLimit: number | null, deadline: string | null = null, weekModuleId: string | null = null, maxAttempts: number = 1) {
   const session = await verifyTeacher(courseId)
   if (!session) return { error: 'Akses Ditolak' }
   try {
@@ -30,7 +30,8 @@ export async function createQuiz(courseId: string, title: string, description: s
         timeLimit,
         deadline: deadline ? new Date(deadline) : null,
         courseId,
-        weekModuleId: weekModuleId || null
+        weekModuleId: weekModuleId || null,
+        maxAttempts: maxAttempts || 1
       }
     })
     revalidatePath(`/teacher/courses/${courseId}`)
@@ -38,13 +39,20 @@ export async function createQuiz(courseId: string, title: string, description: s
   } catch (e: any) { return { error: e.message } }
 }
 
-export async function updateQuiz(quizId: string, courseId: string, title: string, description: string, timeLimit: number | null, isPublished: boolean) {
+export async function updateQuiz(quizId: string, courseId: string, title: string, description: string, timeLimit: number | null, isPublished: boolean, deadline: string | null = null, maxAttempts: number = 1) {
   const session = await verifyTeacher(courseId)
   if (!session) return { error: 'Akses Ditolak' }
   try {
     await prisma.quiz.update({
       where: { id: quizId },
-      data: { title, description: description || null, timeLimit, isPublished }
+      data: {
+        title,
+        description: description || null,
+        timeLimit,
+        isPublished,
+        deadline: deadline ? new Date(deadline) : null,
+        maxAttempts: maxAttempts || 1
+      }
     })
     revalidatePath(`/teacher/courses/${courseId}`)
     return { success: true }
@@ -193,4 +201,47 @@ export async function submitQuiz(attemptId: string, answers: { questionId: strin
 
     return { success: true, score: autoScore }
   } catch (e: any) { return { error: e.message } }
+}
+
+export async function retakeQuiz(quizId: string) {
+  const session = await getServerSession(authOptions)
+  if (!session) return { error: 'Tidak terautentikasi' }
+  const userId = (session.user as any).id
+
+  try {
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId }
+    })
+    if (!quiz) return { error: 'Quiz tidak ditemukan' }
+
+    const attempt = await prisma.quizAttempt.findUnique({
+      where: { quizId_userId: { quizId, userId } }
+    })
+    if (!attempt) return { error: 'Attempt tidak ditemukan' }
+    if (!attempt.submittedAt) return { error: 'Quiz belum selesai dikerjakan' }
+
+    if (quiz.maxAttempts > 0 && attempt.attemptsCount >= quiz.maxAttempts) {
+      return { error: 'Anda sudah mencapai batas maksimal percobaan' }
+    }
+
+    // Delete existing answers
+    await prisma.quizAnswer.deleteMany({
+      where: { attemptId: attempt.id }
+    })
+
+    // Reset attempt
+    await prisma.quizAttempt.update({
+      where: { id: attempt.id },
+      data: {
+        submittedAt: null,
+        score: null,
+        attemptsCount: { increment: 1 }
+      }
+    })
+
+    revalidatePath(`/courses/${quiz.courseId}`)
+    return { success: true }
+  } catch (e: any) {
+    return { error: e.message }
+  }
 }

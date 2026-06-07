@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
     LayoutDashboard,
@@ -16,38 +16,108 @@ import {
     ChevronRight,
     X,
 } from 'lucide-react';
+import { getMyEnrolledOrTaughtCourses } from '@/actions/course';
 
-export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean, setMobileOpen?: (open: boolean) => void }) {
+export default function Sidebar({ 
+    mobileOpen, 
+    setMobileOpen,
+    collapsed,
+    setCollapsed
+}: { 
+    mobileOpen?: boolean;
+    setMobileOpen?: (open: boolean) => void;
+    collapsed: boolean;
+    setCollapsed: (c: boolean) => void;
+}) {
     const { data: session, status } = useSession();
     const role = (session?.user as any)?.role || 'STUDENT';
     const isLoading = status === 'loading';
     const pathname = usePathname();
-    const [collapsed, setCollapsed] = useState(false);
+    const searchParams = useSearchParams();
+    const currentTab = searchParams.get('tab') || 'profile';
 
+    const [mounted, setMounted] = useState(false);
     useEffect(() => {
-        const saved = localStorage.getItem('sidebarCollapsed');
-        if (saved !== null) {
-            setCollapsed(JSON.parse(saved));
-        }
+        setMounted(true);
     }, []);
 
+    const showLoading = !mounted || isLoading;
+
+    const [settingsExpanded, setSettingsExpanded] = useState(pathname === '/settings');
+    const [coursesExpanded, setCoursesExpanded] = useState(pathname.startsWith('/courses') || pathname.startsWith('/teacher/courses'));
+    const [myCourses, setMyCourses] = useState<{ id: string; title: string }[]>([]);
+
+    useEffect(() => {
+        if (pathname === '/settings') {
+            setSettingsExpanded(true);
+        }
+        if (pathname.startsWith('/courses') || pathname.startsWith('/teacher/courses')) {
+            setCoursesExpanded(true);
+        }
+    }, [pathname]);
+
+    useEffect(() => {
+        if (status === 'authenticated') {
+            getMyEnrolledOrTaughtCourses().then((res) => {
+                if (res.success && res.courses) {
+                    setMyCourses(res.courses);
+                }
+            });
+        }
+    }, [status]);
+
     const toggleCollapse = () => {
-        const newState = !collapsed;
-        setCollapsed(newState);
-        localStorage.setItem('sidebarCollapsed', JSON.stringify(newState));
+        setCollapsed(!collapsed);
     };
 
-    const navItems = [
-        { name: 'Dasbor', icon: LayoutDashboard, href: '/', roles: ['STUDENT', 'TEACHER', 'ADMIN'] },
-        { name: 'Kursus Saya', icon: BookOpen, href: '/courses', roles: ['STUDENT'] },
-        { name: 'Kursus Saya', icon: BookOpen, href: '/teacher/courses', roles: ['TEACHER'] },
-        { name: 'Manajemen Kursus', icon: BookOpen, href: '/admin/courses', roles: ['ADMIN'] },
-        { name: 'Tugas', icon: ClipboardList, href: '/assignments', roles: ['STUDENT', 'TEACHER'] },
-        { name: 'Nilai', icon: GraduationCap, href: '/grades', roles: ['STUDENT', 'TEACHER'] },
-        { name: 'Jadwal', icon: Calendar, href: '/schedule', roles: ['STUDENT', 'TEACHER'] },
-        { name: 'Hak Akses', icon: Settings, href: '/admin/users', roles: ['ADMIN'] },
-        { name: 'Pengaturan', icon: Settings, href: '/settings', roles: ['STUDENT', 'TEACHER', 'ADMIN'] },
-    ].filter(item => item.roles.includes(role));
+    const sections = [
+        {
+            title: 'Utama',
+            items: [
+                { name: 'Dasbor', icon: LayoutDashboard, href: '/', roles: ['STUDENT', 'TEACHER', 'ADMIN'] },
+            ]
+        },
+        {
+            title: 'Akademik',
+            items: [
+                { 
+                    name: 'Kursus Saya', 
+                    icon: BookOpen, 
+                    href: role === 'STUDENT' ? '/courses' : '/teacher/courses', 
+                    roles: ['STUDENT', 'TEACHER'],
+                    subItems: myCourses.map(c => ({
+                        name: c.title,
+                        href: role === 'STUDENT' ? `/courses/${c.id}` : `/teacher/courses/${c.id}`
+                    }))
+                },
+                { name: 'Tugas', icon: ClipboardList, href: '/assignments', roles: ['STUDENT', 'TEACHER'] },
+                { name: 'Nilai', icon: GraduationCap, href: '/grades', roles: ['STUDENT', 'TEACHER'] },
+                { name: 'Jadwal', icon: Calendar, href: '/schedule', roles: ['STUDENT', 'TEACHER'] },
+            ]
+        },
+        {
+            title: 'Sistem',
+            items: [
+                { name: 'Manajemen Kursus', icon: BookOpen, href: '/admin/courses', roles: ['ADMIN'] },
+                { name: 'Hak Akses', icon: Settings, href: '/admin/users', roles: ['ADMIN'] },
+                {
+                    name: 'Pengaturan',
+                    icon: Settings,
+                    href: '/settings',
+                    roles: ['STUDENT', 'TEACHER', 'ADMIN'],
+                    subItems: [
+                        { name: 'Profil', href: '/settings?tab=profile' },
+                        { name: 'Tampilan', href: '/settings?tab=appearance' },
+                        { name: 'Notifikasi', href: '/settings?tab=notifications' },
+                        { name: 'Keamanan', href: '/settings?tab=security' }
+                    ]
+                },
+            ]
+        }
+    ].map(section => ({
+        ...section,
+        items: section.items.filter(item => item.roles.includes(role))
+    })).filter(section => section.items.length > 0);
 
     return (
         <>
@@ -59,58 +129,146 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
                 />
             )}
 
-            <aside className={`fixed top-0 left-0 h-full lg:top-6 lg:bottom-6 lg:h-auto ${collapsed ? 'w-[5.5rem]' : 'w-64'} lg:left-6 glass-panel lg:rounded-3xl flex flex-col py-6 px-4 lg:p-6 z-50 transition-all duration-300 cubic-bezier(0.25, 0.8, 0.25, 1) transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+            <aside className={`fixed top-0 left-0 h-full ${collapsed ? 'w-24' : 'w-64'} bg-white dark:bg-[#0b0f19] border-r border-slate-200/50 dark:border-slate-800/50 flex flex-col py-6 px-4 z-50 transition-all duration-300 cubic-bezier(0.25, 0.8, 0.25, 1) transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
                 {/* Mobile Close Button */}
                 <button
                     onClick={() => setMobileOpen?.(false)}
                     className="absolute top-6 right-4 lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 rounded-xl"
                 >
-                    <X size={20} />
+                    <X size={16} />
                 </button>
 
-                <Link href="/" onClick={() => setMobileOpen?.(false)} className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-2'} mb-10 mt-2 lg:mt-0 transition-all duration-300 hover:opacity-80`}>
-                    <div className="w-10 h-10 min-w-[2.5rem] shrink-0 flex items-center justify-center">
-                        <Image src="/logo.png" alt="pErC lms Logo" width={40} height={40} className="object-contain mix-blend-multiply dark:mix-blend-screen" />
+                {/* User Profile Block (ByeWind top design) */}
+                <div className={`flex items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-2'} mb-8 mt-2 transition-all`}>
+                    <div className="w-8 h-8 min-w-[2rem] shrink-0 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 relative shadow-sm">
+                        <img
+                            src={`https://api.dicebear.com/7.x/notionists/svg?seed=${mounted && session?.user?.name ? session.user.name : 'Siswa'}`}
+                            alt="User avatar"
+                            className="w-full h-full object-cover"
+                        />
                     </div>
-                    {!collapsed && <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white whitespace-nowrap overflow-hidden">pErC lms</span>}
-                </Link>
+                    {!collapsed && (
+                        <div className="flex flex-col min-w-0">
+                            <span className="font-bold text-xs text-slate-800 dark:text-slate-200 truncate leading-none">
+                                {mounted && session?.user?.name ? session.user.name : 'Nama Pengguna'}
+                            </span>
+                            <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-wider">
+                                {mounted && session?.user ? (role === 'STUDENT' ? 'Siswa' : role === 'TEACHER' ? 'Guru' : 'Admin') : 'Siswa'}
+                            </span>
+                        </div>
+                    )}
+                </div>
 
-                <nav className="flex-1 flex flex-col gap-2 overflow-y-auto overflow-x-hidden no-scrollbar">
-                    {isLoading ? (
-                        <div className="px-4 space-y-3 mt-2">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                                <div key={i} className="h-[52px] rounded-2xl bg-slate-200/50 dark:bg-slate-800/50 animate-pulse"></div>
+                <nav className="flex-1 flex flex-col gap-1 overflow-y-auto overflow-x-hidden no-scrollbar">
+                    {showLoading ? (
+                        <div className="px-2 space-y-3 mt-2">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="h-9 rounded-xl bg-slate-200/50 dark:bg-slate-800/50 animate-pulse"></div>
                             ))}
                         </div>
                     ) : (
-                        navItems.map((item) => {
-                            const isActive = pathname === item.href;
-                            return (
-                                <Link
-                                    key={item.name}
-                                    href={item.href}
-                                    className={`flex items-center gap-3 ${collapsed ? 'justify-center px-0' : 'px-4'} py-3.5 rounded-2xl transition-all duration-300 group hover-lift ${isActive
-                                        ? 'bg-white/80 dark:bg-white/10 text-blue-600 dark:text-blue-400 font-medium shadow-[0_8px_16px_rgba(59,130,246,0.1)] dark:shadow-[0_8px_16px_rgba(59,130,246,0.2)] ring-1 ring-white/50 dark:ring-white/10'
-                                        : 'text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200'
-                                        }`}
-                                    title={collapsed ? item.name : undefined}
-                                >
-                                    <item.icon size={20} className={`min-w-[1.25rem] transition-colors duration-300 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
-                                    {!collapsed && <span className="whitespace-nowrap">{item.name}</span>}
-                                </Link>
-                            )
-                        })
+                        sections.map((section) => (
+                            <div key={section.title} className="flex flex-col gap-0.5 mb-5">
+                                {!collapsed && <span className="text-[9px] font-bold text-slate-400/80 dark:text-slate-600 uppercase tracking-wider px-2 mb-1.5">{section.title}</span>}
+                                {section.items.map((item) => {
+                                    const isSettings = item.name === 'Pengaturan';
+                                    const isCourses = item.name === 'Kursus Saya';
+                                    const hasSubItems = !!item.subItems && item.subItems.length > 0;
+                                    
+                                    const isExpanded = isSettings ? settingsExpanded : (isCourses ? coursesExpanded : false);
+                                    const isActive = pathname === item.href || (isCourses && (pathname.startsWith('/courses/') || pathname.startsWith('/teacher/courses/')));
+
+                                    if (hasSubItems) {
+                                        return (
+                                            <div key={item.name} className="flex flex-col gap-0.5">
+                                                <Link
+                                                    href={item.href}
+                                                    onClick={(e) => {
+                                                        // Toggle expansion when clicked
+                                                        if (isSettings) setSettingsExpanded(!settingsExpanded);
+                                                        if (isCourses) setCoursesExpanded(!coursesExpanded);
+                                                    }}
+                                                    className={`flex items-center gap-3 ${collapsed ? 'justify-center px-0' : 'px-2'} py-2 rounded-xl transition-all duration-200 group w-full text-left cursor-pointer ${isActive && !isExpanded
+                                                        ? 'bg-[#E8EFFF] dark:bg-slate-800/40 text-blue-600 dark:text-blue-400 font-bold'
+                                                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/20 hover:text-slate-880 dark:hover:text-slate-200'
+                                                        }`}
+                                                >
+                                                     {collapsed ? (
+                                                         <item.icon size={15} className={`min-w-[1rem] transition-colors duration-200 ${(isActive && !isExpanded) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-650 dark:group-hover:text-slate-300'}`} />
+                                                     ) : (
+                                                         <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                             <ChevronRight
+                                                                 size={10}
+                                                                 className={`text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-90 text-blue-500' : ''}`}
+                                                             />
+                                                             <item.icon size={15} className={`min-w-[1rem] transition-colors duration-200 ${(isActive && !isExpanded) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-650 dark:group-hover:text-slate-300'}`} />
+                                                             <span className="text-[11px] font-medium leading-none truncate">{item.name}</span>
+                                                         </div>
+                                                     )}
+                                                </Link>
+
+                                                {/* Sub Items (Expandable naturally downwards, with clean spacing to prevent overlapping) */}
+                                                {!collapsed && isExpanded && (
+                                                    <div className="flex flex-col gap-1.5 pl-4 ml-2 mt-1 border-l border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-1 duration-200">
+                                                        {item.subItems.map((sub) => {
+                                                            const isSubActive = sub.href.includes('?tab=')
+                                                                ? (pathname === '/settings' && sub.href.includes(`tab=${currentTab}`))
+                                                                : (pathname === sub.href);
+                                                            return (
+                                                                <Link
+                                                                    key={sub.name}
+                                                                    href={sub.href}
+                                                                    className={`flex items-center w-full py-1.5 px-3 rounded-lg text-[11px] font-medium transition-all duration-200 ${isSubActive
+                                                                        ? 'text-blue-600 dark:text-blue-400 bg-[#E8EFFF] dark:bg-slate-800/80 font-semibold'
+                                                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50/80 dark:hover:bg-slate-800/30'
+                                                                        }`}
+                                                                >
+                                                                    <span className="truncate block w-full text-left leading-normal">
+                                                                        {sub.name}
+                                                                    </span>
+                                                                </Link>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    }
+
+                                    return (
+                                        <Link
+                                            key={item.name}
+                                            href={item.href}
+                                            className={`flex items-center gap-3 ${collapsed ? 'justify-center px-0' : 'px-2'} py-2 rounded-xl transition-all duration-200 group ${isActive
+                                                ? 'bg-[#E8EFFF] dark:bg-slate-800/40 text-blue-600 dark:text-blue-400 font-bold'
+                                                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/20 hover:text-slate-800 dark:hover:text-slate-200'
+                                                }`}
+                                            title={collapsed ? item.name : undefined}
+                                        >
+                                            <item.icon size={15} className={`min-w-[1rem] transition-colors duration-200 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-660 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
+                                            {!collapsed && <span className="text-[11px] font-medium leading-none">{item.name}</span>}
+                                        </Link>
+                                    )
+                                })}
+                            </div>
+                        ))
                     )}
                 </nav>
 
-
+                {/* Footer Logo Block (matches SnowUI footer label) */}
+                <div className={`mt-auto pt-6 flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-2'} border-t border-slate-100 dark:border-slate-800/50`}>
+                    <div className="w-5 h-5 shrink-0 flex items-center justify-center">
+                        <Image src="/logo.png" alt="Logo" width={20} height={20} className="object-contain dark:mix-blend-screen" />
+                    </div>
+                    {!collapsed && <span className="font-bold text-[9px] tracking-widest text-slate-400 dark:text-slate-500 uppercase leading-none">pErC lms</span>}
+                </div>
 
                 {/* Collapse Toggle */}
                 <button
                     onClick={toggleCollapse}
-                    className="absolute -right-3 top-20 w-8 h-8 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 shadow-md border border-slate-100 dark:border-slate-700 z-10 hover:scale-110 transition-all hidden lg:flex hover-lift"
+                    className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 shadow-sm border border-slate-100 dark:border-slate-700 z-10 hover:scale-110 transition-all hidden lg:flex"
                 >
-                    {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+                    {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
                 </button>
             </aside>
         </>

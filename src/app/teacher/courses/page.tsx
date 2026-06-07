@@ -27,7 +27,7 @@ export default async function TeacherCoursesPage() {
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl shadow-sm">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl shadow-sm">
                         <BookOpen size={28} />
                     </div>
                     <div>
@@ -39,7 +39,7 @@ export default async function TeacherCoursesPage() {
 
             {courses.length === 0 ? (
                 <div className="flex-1 glass-panel rounded-3xl flex flex-col items-center justify-center text-center p-12">
-                    <div className="w-20 h-20 bg-emerald-50 dark:bg-slate-700 rounded-full flex items-center justify-center mb-6 text-emerald-400">
+                    <div className="w-20 h-20 bg-blue-50 dark:bg-slate-700 rounded-full flex items-center justify-center mb-6 text-blue-400">
                         <BookOpen size={32} />
                     </div>
                     <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-200 mb-2">Anda Belum Mengajar Kelas</h2>
@@ -51,7 +51,7 @@ export default async function TeacherCoursesPage() {
                         <Link
                             key={course.id}
                             href={`/teacher/courses/${course.id}`}
-                            className="glass-panel rounded-3xl p-6 flex flex-col gap-5 hover-lift group transition-all duration-300 hover:ring-2 hover:ring-emerald-500/30"
+                            className="glass-panel rounded-3xl p-6 flex flex-col gap-5 hover-lift group transition-all duration-300 hover:ring-2 hover:ring-blue-500/30"
                         >
                             {/* Icon + Title */}
                             <div className="flex items-start gap-3">
@@ -59,9 +59,9 @@ export default async function TeacherCoursesPage() {
                                     <Sparkles size={20} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg leading-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{course.title}</h3>
+                                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{course.title}</h3>
                                 </div>
-                                <ChevronRight size={18} className="text-slate-300 dark:text-slate-600 group-hover:text-emerald-500 transition-colors shrink-0 mt-1" />
+                                <ChevronRight size={18} className="text-slate-300 dark:text-slate-600 group-hover:text-blue-500 transition-colors shrink-0 mt-1" />
                             </div>
 
                             {/* Stats */}

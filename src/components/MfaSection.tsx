@@ -72,7 +72,7 @@ export default function MfaSection() {
         <div className="space-y-5">
             <div>
                 <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-2">
-                    {mfaEnabled ? <ShieldCheck size={18} className="text-emerald-500" /> : <Shield size={18} className="text-slate-400" />}
+                    {mfaEnabled ? <ShieldCheck size={18} className="text-blue-500" /> : <Shield size={18} className="text-slate-400" />}
                     Autentikasi Dua Faktor (MFA)
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -83,13 +83,13 @@ export default function MfaSection() {
             </div>
 
             {/* Status badge */}
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${mfaEnabled ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${mfaEnabled ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
                 {mfaEnabled ? <><ShieldCheck size={13} /> Aktif</> : <><ShieldOff size={13} /> Tidak Aktif</>}
             </div>
 
             {/* Feedback */}
             {msg && (
-                <div className={`flex items-center gap-2 p-3 rounded-xl text-sm ${msg.type === "success" ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800" : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"}`}>
+                <div className={`flex items-center gap-2 p-3 rounded-xl text-sm ${msg.type === "success" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800" : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"}`}>
                     {msg.type === "success" ? <Check size={15} className="shrink-0" /> : <AlertCircle size={15} className="shrink-0" />}
                     {msg.text}
                 </div>
@@ -138,7 +138,7 @@ export default function MfaSection() {
                                 <button
                                     onClick={handleVerify}
                                     disabled={code.length !== 6 || isPending}
-                                    className="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-xl text-sm flex items-center gap-2 disabled:opacity-50 hover:bg-emerald-700 transition-all"
+                                    className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-xl text-sm flex items-center gap-2 disabled:opacity-50 hover:bg-blue-700 transition-all"
                                 >
                                     {isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                                     Verifikasi

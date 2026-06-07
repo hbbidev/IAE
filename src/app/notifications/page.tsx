@@ -87,7 +87,7 @@ export default async function NotificationsPage() {
             time: s.updatedAt,
             href: `/courses/${s.assignment.course.id}?tab=tugas`,
             icon: GraduationCap,
-            color: 'emerald',
+            color: 'blue',
         });
     });
 
@@ -97,7 +97,7 @@ export default async function NotificationsPage() {
     const colorMap: Record<string, string> = {
         amber: 'bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400',
         indigo: 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400',
-        emerald: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400',
+        blue: 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400',
     };
 
     return (

@@ -89,7 +89,7 @@ export default function VerifyMfaPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-[#F4F7FE] dark:bg-black p-4">
             <div className="w-full max-w-sm">
                 {/* Card */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)] border border-slate-100 dark:border-slate-800 p-8 flex flex-col items-center gap-6">
