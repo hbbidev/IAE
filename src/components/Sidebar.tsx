@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import {
     LayoutDashboard,
     BookOpen,
@@ -15,6 +15,7 @@ import {
     ChevronLeft,
     ChevronRight,
     X,
+    LogOut,
 } from 'lucide-react';
 import { getMyEnrolledOrTaughtCourses } from '@/actions/course';
 
@@ -43,6 +44,7 @@ export default function Sidebar({
 
     const showLoading = !mounted || isLoading;
 
+    const [profileOpen, setProfileOpen] = useState(false);
     const [settingsExpanded, setSettingsExpanded] = useState(pathname === '/settings');
     const [coursesExpanded, setCoursesExpanded] = useState(pathname.startsWith('/courses') || pathname.startsWith('/teacher/courses'));
     const [myCourses, setMyCourses] = useState<{ id: string; title: string }[]>([]);
@@ -139,23 +141,59 @@ export default function Sidebar({
                 </button>
 
                 {/* User Profile Block (ByeWind top design) */}
-                <div className={`flex items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-2'} mb-8 mt-2 transition-all`}>
-                    <div className="w-8 h-8 min-w-[2rem] shrink-0 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 relative shadow-sm">
-                        <img
-                            src={`https://api.dicebear.com/7.x/notionists/svg?seed=${mounted && session?.user?.name ? session.user.name : 'Siswa'}`}
-                            alt="User avatar"
-                            className="w-full h-full object-cover"
-                        />
-                    </div>
-                    {!collapsed && (
-                        <div className="flex flex-col min-w-0">
-                            <span className="font-bold text-xs text-slate-800 dark:text-slate-200 truncate leading-none">
-                                {mounted && session?.user?.name ? session.user.name : 'Nama Pengguna'}
-                            </span>
-                            <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-wider">
-                                {mounted && session?.user ? (role === 'STUDENT' ? 'Siswa' : role === 'TEACHER' ? 'Guru' : 'Admin') : 'Siswa'}
-                            </span>
+                <div className="relative mb-8 mt-2">
+                    <button 
+                        onClick={() => setProfileOpen(!profileOpen)}
+                        className={`flex items-center ${collapsed ? 'justify-center w-full px-0' : 'gap-3 px-2 py-1.5'} rounded-xl w-full hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all text-left focus:outline-none`}
+                    >
+                        <div className="w-8 h-8 min-w-[2rem] shrink-0 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 relative shadow-sm">
+                            <img
+                                src={`https://api.dicebear.com/7.x/notionists/svg?seed=${mounted && session?.user?.name ? session.user.name : 'Siswa'}`}
+                                alt="User avatar"
+                                className="w-full h-full object-cover"
+                            />
                         </div>
+                        {!collapsed && (
+                            <div className="flex flex-col min-w-0 flex-1">
+                                <span className="font-bold text-xs text-slate-800 dark:text-slate-200 truncate leading-none">
+                                    {mounted && session?.user?.name ? session.user.name : 'Nama Pengguna'}
+                                </span>
+                                <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-wider leading-none">
+                                    {mounted && session?.user ? (role === 'STUDENT' ? 'Siswa' : role === 'TEACHER' ? 'Guru' : 'Admin') : 'Siswa'}
+                                </span>
+                            </div>
+                        )}
+                    </button>
+
+                    {/* Popover / Dropdown Menu */}
+                    {profileOpen && (
+                        <>
+                            {/* Backdrop click listener */}
+                            <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
+                            <div className={`absolute ${collapsed ? 'left-20 top-0 w-48' : 'left-2 right-2 top-12'} bg-white dark:bg-[#0f172a] border border-slate-200/60 dark:border-slate-800 rounded-xl shadow-xl py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150`}>
+                                <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800">
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Akun Saya</p>
+                                </div>
+                                <Link
+                                    href="/settings?tab=profile"
+                                    onClick={() => setProfileOpen(false)}
+                                    className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-600 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-850 hover:text-slate-900 dark:hover:text-white transition-colors"
+                                >
+                                    <Settings size={14} className="text-slate-400" />
+                                    <span>Pengaturan Profil</span>
+                                </Link>
+                                <button
+                                    onClick={() => {
+                                        setProfileOpen(false);
+                                        signOut({ callbackUrl: "/login" });
+                                    }}
+                                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-semibold text-red-650 text-red-650 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                                >
+                                    <LogOut size={14} />
+                                    <span>Keluar (Logout)</span>
+                                </button>
+                            </div>
+                        </>
                     )}
                 </div>
 
