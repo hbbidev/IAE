@@ -52,7 +52,7 @@ export default function LoginPage() {
             setQrCodeDataUrl('');
             
             // 1. Hit API to generate token
-            const res = await fetch('https://percikapi.hbii.my.id/api/auth/qr/generate', { method: 'POST' });
+            const res = await fetch('https://api-percik.hbii.my.id/api/auth/qr/generate', { method: 'POST' });
             if (!res.ok) throw new Error("Gagal membuat sesi QR");
             const data = await res.json();
             const token = data.qr_token;
@@ -67,7 +67,7 @@ export default function LoginPage() {
             
             pollIntervalRef.current = setInterval(async () => {
                 try {
-                    const statusRes = await fetch(`https://percikapi.hbii.my.id/api/auth/qr/status?token=${token}`);
+                    const statusRes = await fetch(`https://api-percik.hbii.my.id/api/auth/qr/status?token=${token}`);
                     if (!statusRes.ok) return;
                     const statusData = await statusRes.json();
                     
