@@ -3,7 +3,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { AuthOptions } from "next-auth";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-percik.hbii.my.id/api";
+const isServer = typeof window === 'undefined';
+const BACKEND_URL = isServer 
+    ? (process.env.INTERNAL_API_URL || "http://127.0.0.1:8080/api")
+    : (process.env.NEXT_PUBLIC_API_URL || "https://api-percik.hbii.my.id/api");
 
 export const authOptions: AuthOptions = {
     providers: [

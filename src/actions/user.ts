@@ -190,7 +190,10 @@ export async function generateMobileLoginQrCodePayload() {
     const accessToken = (session.user as any).accessToken;
     if (!accessToken) return { error: 'Token akses tidak ditemukan. Silakan login ulang.' };
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://api-percik.hbii.my.id/api";
+    const isServer = typeof window === 'undefined';
+    const backendUrl = isServer 
+        ? (process.env.INTERNAL_API_URL || "http://127.0.0.1:8080/api")
+        : (process.env.NEXT_PUBLIC_API_URL || "https://api-percik.hbii.my.id/api");
     
     // Call backend to generate a long-lived mobile token
     const res = await fetch(`${backendUrl}/auth/mobile-token`, {
