@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import prisma from "@/lib/prisma";
+import { fetchBackend } from "@/lib/api";
 import { redirect, notFound } from "next/navigation";
 import CourseDetailClient from "./CourseDetailClient";
 
@@ -11,78 +11,45 @@ export default async function TeacherCourseDetailPage({ params }: { params: Prom
 
     const userId = (session.user as any).id;
     const role = (session.user as any).role;
+    const token = (session.user as any).accessToken;
 
-    const course = await prisma.course.findUnique({
-        where: { id },
-        include: {
-            lessons: { orderBy: { order: 'asc' }, include: { weekModule: { select: { id: true, title: true, weekNumber: true } } } },
-            weekModules: { orderBy: { weekNumber: 'asc' } },
-            schedules: { orderBy: { dayOfWeek: 'asc' } },
-            assignments: {
-                orderBy: { createdAt: 'desc' },
-                include: {
-                    weekModule: { select: { id: true, weekNumber: true, title: true } },
-                    submissions: {
-                        include: {
-                            user: { select: { id: true, name: true, nim: true } }
-                        },
-                        orderBy: { submittedAt: 'asc' }
-                    }
-                }
-            },
-            enrollments: {
-                orderBy: { createdAt: 'asc' },
-                include: {
-                    user: { select: { id: true, name: true, nim: true } }
-                }
-            },
-            quizzes: {
-                orderBy: { createdAt: 'desc' },
-                include: {
-                    weekModule: { select: { id: true, weekNumber: true, title: true } },
-                    questions: { orderBy: { order: 'asc' } },
-                    attempts: {
-                        include: {
-                            user: { select: { id: true, name: true, nim: true } }
-                        }
-                    }
-                }
-            }
-        }
-    });
+    let data: any = null;
+    let attendanceRecords: any[] = [];
 
-    if (!course) notFound();
-
-    // Only teacher of this course or admin can access
-    if (role !== 'ADMIN' && course.teacherId !== userId) redirect("/");
-
-    // Fetch attendance from unified database via Prisma
-    let attendances = [];
     try {
-        const attendanceRecords = await prisma.attendance.findMany({
-            where: { courseId: id },
-            orderBy: { attendanceDate: 'desc' },
-            include: {
-                user: {
-                    select: { name: true, email: true }
-                }
-            }
-        });
-
-        attendances = attendanceRecords.map((att: any) => ({
-            id: att.id,
-            user_id: att.userId,
-            attendance_date: att.attendanceDate,
-            status: att.status,
-            is_verified: att.isVerified,
-            created_at: att.createdAt,
-            student_name: att.user.name,
-            student_email: att.user.email,
-            location_name: att.locationName,
-        }));
-    } catch(e) {
-        console.error("Failed to fetch attendances", e);
+        data = await fetchBackend(`/courses/${id}`, token);
+        attendanceRecords = await fetchBackend(`/courses/${id}/attendance`, token);
+    } catch (e: any) {
+        console.error("Failed to fetch course details from backend", e);
+        notFound();
     }
 
-    return <CourseDetailClient course={course} attendances={attendances} />;
+    if (!data || !data.course) notFound();
+
+    // Only teacher of this course or admin can access
+    if (role !== 'ADMIN' && data.course.teacherId !== userId) redirect("/");
+
+    const courseData = {
+        ...data.course,
+        lessons: data.lessons ?? [],
+        weekModules: data.weekModules ?? [],
+        schedules: data.schedules ?? [],
+        enrollments: data.enrollments ?? [],
+        assignments: data.assignments ?? [],
+        quizzes: data.quizzes ?? [],
+    };
+
+    const attendances = attendanceRecords.map((att: any) => ({
+        id: att.id,
+        user_id: att.user_id,
+        attendance_date: att.date,
+        status: att.status,
+        is_verified: att.is_verified,
+        created_at: att.created_at ?? att.date,
+        student_name: att.student_name,
+        student_email: att.student_email,
+        location_name: att.location_name,
+    }));
+
+    return <CourseDetailClient course={courseData} attendances={attendances} />;
 }

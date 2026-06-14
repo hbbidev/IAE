@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import prisma from "@/lib/prisma";
+import { fetchBackend } from "@/lib/api";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { BookOpen, Users, ClipboardList, ChevronRight, Plus, Sparkles } from "lucide-react";
@@ -13,14 +13,22 @@ export default async function TeacherCoursesPage() {
     if (role === 'STUDENT') redirect("/courses");
     if (role === 'ADMIN') redirect("/admin/courses");
 
-    const teacherId = (session.user as any).id;
-    const courses = await prisma.course.findMany({
-        where: { teacherId },
-        include: {
-            _count: { select: { enrollments: true, lessons: true, assignments: true } }
-        },
-        orderBy: { createdAt: 'desc' }
-    });
+    const token = (session.user as any).accessToken;
+    let coursesRaw: any[] = [];
+    try {
+        coursesRaw = await fetchBackend("/courses", token);
+    } catch (e) {
+        console.error("Failed to fetch teacher courses from backend", e);
+    }
+
+    const courses = coursesRaw.map((course: any) => ({
+        ...course,
+        _count: {
+            enrollments: course.enrollments_count ?? 0,
+            lessons: course.lessons_count ?? 0,
+            assignments: course.assignments_count ?? 0,
+        }
+    }));
 
     return (
         <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-500">

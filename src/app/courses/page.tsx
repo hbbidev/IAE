@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import prisma from "@/lib/prisma";
+import { fetchBackend } from "@/lib/api";
 import { redirect } from "next/navigation";
 import CourseCatalogClient from "./CourseCatalogClient";
 
@@ -8,32 +8,29 @@ export default async function CoursesPage() {
     const session = await getServerSession(authOptions);
     if (!session) redirect("/login");
 
-    const userId = (session.user as any).id;
     const role = (session.user as any).role;
+    const token = (session.user as any).accessToken;
 
     // Admin go to their own course management
     if (role === 'ADMIN') redirect('/admin/courses');
 
-    // Get all courses with enrollment status for this user
-    const courses = await prisma.course.findMany({
-        orderBy: { createdAt: 'desc' },
-        include: {
-            teacher: { select: { name: true } },
-            _count: { select: { enrollments: true, lessons: true } },
-            enrollments: {
-                where: { userId },
-                select: { userId: true }
-            }
-        }
-    });
+    let coursesRaw: any[] = [];
+    try {
+        coursesRaw = await fetchBackend("/courses?all=true", token);
+    } catch (e) {
+        console.error("Failed to fetch student catalog from backend", e);
+    }
 
-    const coursesWithStatus = courses.map(c => ({
+    const coursesWithStatus = coursesRaw.map((c: any) => ({
         id: c.id,
         title: c.title,
         description: c.description,
-        teacher: c.teacher,
-        _count: c._count,
-        enrolled: c.enrollments.length > 0
+        teacher: { name: c.teacher_name },
+        _count: {
+            enrollments: c.enrollments_count ?? 0,
+            lessons: c.lessons_count ?? 0
+        },
+        enrolled: c.enrolled
     }));
 
     return <CourseCatalogClient courses={coursesWithStatus} />;

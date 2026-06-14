@@ -72,8 +72,8 @@ export default function VerifyMfaPage() {
                 inputRefs.current[0]?.focus();
                 return;
             }
-            // Update session JWT — clear mfaPending flag
-            await update({ mfaVerified: true });
+            // Update session JWT — clear mfaPending flag and save access token
+            await update({ mfaVerified: true, accessToken: data.accessToken });
             // Pakai full page reload (bukan client-side navigation) agar
             // browser kirim cookie JWT terbaru ke server / middleware.
             window.location.replace("/");

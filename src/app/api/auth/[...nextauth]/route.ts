@@ -1,10 +1,7 @@
 import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import bcrypt from "bcryptjs";
-import prisma from "@/lib/prisma";
 import { AuthOptions } from "next-auth";
-import { randomUUID } from "crypto";
 
 export const authOptions: AuthOptions = {
     providers: [
@@ -22,104 +19,114 @@ export const authOptions: AuthOptions = {
             async authorize(credentials) {
                 if (credentials?.qrJwt) {
                     try {
-                        const base64Url = credentials.qrJwt.split('.')[1];
-                        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                        const jsonPayload = Buffer.from(base64, 'base64').toString('utf-8');
-                        const claims = JSON.parse(jsonPayload);
-                        
-                        const user = await prisma.user.findFirst({
-                            where: { OR: [{ email: claims.sub }, { id: claims.lms_id }] }
+                        const res = await fetch("https://api-percik.hbii.my.id/api/auth/me", {
+                            headers: {
+                                "Authorization": `Bearer ${credentials.qrJwt}`
+                            }
                         });
+                        if (!res.ok) throw new Error("Sesi QR tidak valid");
+                        const user = await res.json();
                         
-                        if (!user) throw new Error("User not found from QR token");
                         return {
                             id: user.id,
                             name: user.name,
                             email: user.email,
                             nim: user.nim,
                             role: user.role,
+                            accessToken: credentials.qrJwt,
                             mfaPending: false,
                         } as any;
-                    } catch (e) {
-                        throw new Error("Invalid QR token");
+                    } catch (e: any) {
+                        throw new Error(e.message || "Invalid QR token");
                     }
                 }
 
                 if (!credentials?.nim || !credentials?.password) {
-                    throw new Error("Missing credentials");
+                    throw new Error("ID Pengguna dan kata sandi wajib diisi");
                 }
 
-                const user = await prisma.user.findUnique({
-                    where: { nim: credentials.nim }
-                });
+                try {
+                    const res = await fetch("https://api-percik.hbii.my.id/api/auth/login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            email: credentials.nim,
+                            password: credentials.password
+                        })
+                    });
 
-                if (!user || !user.password) {
-                    throw new Error("Invalid credentials");
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        if (data.error === "mfa_required" && data.user) {
+                            return {
+                                id: data.user.id,
+                                name: data.user.name,
+                                email: data.user.email,
+                                nim: data.user.nim,
+                                role: data.user.role,
+                                mfaPending: true,
+                                tempPassword: credentials.password,
+                            } as any;
+                        }
+                        throw new Error(data.message || "ID Pengguna atau Kata Sandi salah");
+                    }
+
+                    return {
+                        id: data.user.id,
+                        name: data.user.name,
+                        email: data.user.email,
+                        nim: data.user.nim,
+                        role: data.user.role,
+                        accessToken: data.token,
+                        mfaPending: false,
+                    } as any;
+                } catch (e: any) {
+                    throw new Error(e.message || "Gagal menghubungkan ke server");
                 }
-
-                const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-                if (!isPasswordValid) {
-                    throw new Error("Invalid credentials");
-                }
-
-                return {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    nim: user.nim,
-                    role: user.role,
-                    // Jika MFA aktif, tandai session sebagai pending MFA
-                    mfaPending: user.totpEnabled ? true : false,
-                } as any;
             }
         })
     ],
     callbacks: {
-        async signIn({ user, account, profile }) {
+        async signIn({ user, account }) {
             if (account?.provider === "google") {
-                if (!user.email) return false;
-
-                let dbUser = await prisma.user.findUnique({
-                    where: { email: user.email }
-                });
-
-                if (!dbUser) {
-                            // Create new student user
-                    const hashedPassword = await bcrypt.hash(randomUUID(), 10);
-                    dbUser = await prisma.user.create({
-                        data: {
-                            email: user.email,
-                            name: user.name || "Google User",
-                            password: hashedPassword,
-                            role: "STUDENT",
-                            nim: `g-${Date.now().toString().slice(-6)}` // Generate a basic nim
-                        }
+                try {
+                    const res = await fetch("https://api-percik.hbii.my.id/api/auth/google-login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id_token: account.id_token })
                     });
+
+                    if (!res.ok) return false;
+                    const data = await res.json();
+
+                    (user as any).id = data.user.id;
+                    (user as any).role = data.user.role;
+                    (user as any).nim = data.user.nim;
+                    (user as any).accessToken = data.token;
+                    (user as any).mfaPending = false;
+                } catch (e) {
+                    return false;
                 }
-                // Store DB properties on the user object so they flow to the JWT callback
-                (user as any).id = dbUser.id;
-                (user as any).role = dbUser.role;
-                (user as any).nim = dbUser.nim;
-                (user as any).mfaPending = false; // Bypass MFA for Google login by default, or customize
             }
             return true;
         },
-        async jwt({ token, user, trigger, session, account }) {
-            // Initial login
+        async jwt({ token, user, trigger, session }) {
             if (user) {
-                // For google users, values were added during signIn callback
-                // For credential users, they come directly from authorize() return
                 token.id = user.id;
                 token.email = user.email;
                 token.name = user.name;
                 token.nim = (user as any).nim;
                 token.role = (user as any).role;
                 token.mfaPending = (user as any).mfaPending ?? false;
+                token.accessToken = (user as any).accessToken;
+                token.tempPassword = (user as any).tempPassword;
             }
 
-            // Handle dynamic updates (e.g. after MFA verification)
             if (trigger === "update" && session?.mfaVerified === true) {
                 token.mfaPending = false;
+                token.accessToken = session.accessToken;
+                delete token.tempPassword;
             }
             
             return token;
@@ -132,6 +139,7 @@ export const authOptions: AuthOptions = {
                 (session.user as any).nim = token.nim;
                 (session.user as any).role = token.role;
                 (session.user as any).mfaPending = token.mfaPending;
+                (session.user as any).accessToken = token.accessToken;
             }
             return session;
         }

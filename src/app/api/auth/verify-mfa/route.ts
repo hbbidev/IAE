@@ -1,44 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import prisma from "@/lib/prisma";
-import * as OTPAuth from "otpauth";
+import { getToken } from "next-auth/jwt";
 
 export async function POST(req: NextRequest) {
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET || "fallback_secret_for_development_only" });
+    if (!token) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = (session.user as any).id;
     const { code } = await req.json();
 
     if (!code || code.length !== 6) {
         return NextResponse.json({ error: "Kode tidak valid" }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { totpSecret: true, totpEnabled: true, email: true },
-    });
+    const email = token.email;
+    const password = token.tempPassword as string;
 
-    if (!user?.totpEnabled || !user.totpSecret) {
-        return NextResponse.json({ error: "MFA tidak aktif" }, { status: 400 });
+    if (!email || !password) {
+        return NextResponse.json({ error: "Sesi login tidak valid" }, { status: 400 });
     }
 
-    const totp = new OTPAuth.TOTP({
-        issuer: "pErC lms",
-        label: user.email,
-        algorithm: "SHA1",
-        digits: 6,
-        period: 30,
-        secret: OTPAuth.Secret.fromBase32(user.totpSecret),
-    });
+    try {
+        const res = await fetch("https://api-percik.hbii.my.id/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email,
+                password,
+                totp_code: code
+            })
+        });
 
-    const delta = totp.validate({ token: code, window: 1 });
-    if (delta === null) {
-        return NextResponse.json({ error: "Kode salah. Coba lagi." }, { status: 400 });
+        const data = await res.json();
+
+        if (!res.ok) {
+            return NextResponse.json({ error: data.message || "Kode salah. Coba lagi." }, { status: 400 });
+        }
+
+        // Return the final JWT access token so the frontend can update the session
+        return NextResponse.json({ success: true, accessToken: data.token });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message || "Gagal menghubungi server" }, { status: 500 });
     }
-
-    return NextResponse.json({ success: true });
 }
