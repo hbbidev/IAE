@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { ArrowRight, Fingerprint, KeyRound, Loader2, QrCode, X } from 'lucide-react';
 import QRCode from 'qrcode';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-percik.hbii.my.id/api";
+
 export default function LoginPage() {
     const router = useRouter();
     const [nim, setNim] = useState('');
@@ -52,7 +54,7 @@ export default function LoginPage() {
             setQrCodeDataUrl('');
             
             // 1. Hit API to generate token
-            const res = await fetch('https://api-percik.hbii.my.id/api/auth/qr/generate', { method: 'POST' });
+            const res = await fetch(`${BACKEND_URL}/auth/qr/generate`, { method: 'POST' });
             if (!res.ok) throw new Error("Gagal membuat sesi QR");
             const data = await res.json();
             const token = data.qr_token;
@@ -67,7 +69,7 @@ export default function LoginPage() {
             
             pollIntervalRef.current = setInterval(async () => {
                 try {
-                    const statusRes = await fetch(`https://api-percik.hbii.my.id/api/auth/qr/status?token=${token}`);
+                    const statusRes = await fetch(`${BACKEND_URL}/auth/qr/status?token=${token}`);
                     if (!statusRes.ok) return;
                     const statusData = await statusRes.json();
                     

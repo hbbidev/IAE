@@ -3,6 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { AuthOptions } from "next-auth";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-percik.hbii.my.id/api";
+
 export const authOptions: AuthOptions = {
     providers: [
         GoogleProvider({
@@ -19,7 +21,7 @@ export const authOptions: AuthOptions = {
             async authorize(credentials) {
                 if (credentials?.qrJwt) {
                     try {
-                        const res = await fetch("https://api-percik.hbii.my.id/api/auth/me", {
+                        const res = await fetch(`${BACKEND_URL}/auth/me`, {
                             headers: {
                                 "Authorization": `Bearer ${credentials.qrJwt}`
                             }
@@ -46,7 +48,7 @@ export const authOptions: AuthOptions = {
                 }
 
                 try {
-                    const res = await fetch("https://api-percik.hbii.my.id/api/auth/login", {
+                    const res = await fetch(`${BACKEND_URL}/auth/login`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -91,7 +93,7 @@ export const authOptions: AuthOptions = {
         async signIn({ user, account }) {
             if (account?.provider === "google") {
                 try {
-                    const res = await fetch("https://api-percik.hbii.my.id/api/auth/google-login", {
+                    const res = await fetch(`${BACKEND_URL}/auth/google-login`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ id_token: account.id_token })

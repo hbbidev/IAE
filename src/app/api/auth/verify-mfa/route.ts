@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-percik.hbii.my.id/api";
+
 export async function POST(req: NextRequest) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET || "fallback_secret_for_development_only" });
     if (!token) {
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const res = await fetch("https://api-percik.hbii.my.id/api/auth/login", {
+        const res = await fetch(`${BACKEND_URL}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
