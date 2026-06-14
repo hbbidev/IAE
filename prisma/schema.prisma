@@ -74,6 +74,7 @@ model Quiz {
   deadline    DateTime? // batas waktu pengerjaan
   isPublished Boolean   @default(false)
   maxAttempts Int       @default(1)
+  showScore   Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

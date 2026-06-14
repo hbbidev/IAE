@@ -585,7 +585,7 @@ function QuizListTab({ quizzes, weekModules }: { quizzes: any[]; weekModules: an
                             {quiz.timeLimit && <span className="text-xs text-slate-500">⏱ {quiz.timeLimit} menit</span>}
                             {done && (
                                 <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                                    Skor: {attempt.score}/{totalPoints} {attempt.attemptsCount > 1 ? `(Percobaan ke-${attempt.attemptsCount})` : ''}
+                                    {quiz.showScore ? `Skor: ${attempt.score ?? 0}/${totalPoints}` : 'Nilai disembunyikan oleh guru'} {attempt.attemptsCount > 1 ? `(Percobaan ke-${attempt.attemptsCount})` : ''}
                                 </span>
                             )}
                             {quiz.maxAttempts > 0 && (

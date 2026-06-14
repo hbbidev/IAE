@@ -19,7 +19,7 @@ async function verifyTeacher(courseId: string) {
 
 // =================== QUIZ CRUD (TEACHER) ===================
 
-export async function createQuiz(courseId: string, title: string, description: string, timeLimit: number | null, deadline: string | null = null, weekModuleId: string | null = null, maxAttempts: number = 1) {
+export async function createQuiz(courseId: string, title: string, description: string, timeLimit: number | null, deadline: string | null = null, weekModuleId: string | null = null, maxAttempts: number = 1, showScore: boolean = true) {
   const session = await verifyTeacher(courseId)
   if (!session) return { error: 'Akses Ditolak' }
   if (timeLimit !== null && timeLimit < 0) {
@@ -37,7 +37,8 @@ export async function createQuiz(courseId: string, title: string, description: s
         deadline: deadline ? new Date(deadline) : null,
         courseId,
         weekModuleId: weekModuleId || null,
-        maxAttempts: maxAttempts || 1
+        maxAttempts: maxAttempts || 1,
+        showScore
       }
     })
     revalidatePath(`/teacher/courses/${courseId}`)
@@ -45,7 +46,7 @@ export async function createQuiz(courseId: string, title: string, description: s
   } catch (e: any) { return { error: e.message } }
 }
 
-export async function updateQuiz(quizId: string, courseId: string, title: string, description: string, timeLimit: number | null, isPublished: boolean, deadline: string | null = null, maxAttempts: number = 1) {
+export async function updateQuiz(quizId: string, courseId: string, title: string, description: string, timeLimit: number | null, isPublished: boolean, deadline: string | null = null, maxAttempts: number = 1, showScore: boolean = true) {
   const session = await verifyTeacher(courseId)
   if (!session) return { error: 'Akses Ditolak' }
   if (timeLimit !== null && timeLimit < 0) {
@@ -63,7 +64,8 @@ export async function updateQuiz(quizId: string, courseId: string, title: string
         timeLimit,
         isPublished,
         deadline: deadline ? new Date(deadline) : null,
-        maxAttempts: maxAttempts || 1
+        maxAttempts: maxAttempts || 1,
+        showScore
       }
     })
     revalidatePath(`/teacher/courses/${courseId}`)
@@ -191,12 +193,8 @@ export async function submitQuiz(attemptId: string, answers: { questionId: strin
         isCorrect = ans.answer === question.correctAnswer
         score = isCorrect ? question.points : 0
         autoScore += score
-      } else if (question.type === 'SHORT_ANSWER' && question.correctAnswer) {
-        isCorrect = ans.answer.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase()
-        score = isCorrect ? question.points : 0
-        autoScore += score
       }
-      // ESSAY: score = null, graded manually by teacher
+      // SHORT_ANSWER and ESSAY: score = null, graded manually by teacher
 
       await prisma.quizAnswer.upsert({
         where: { attemptId_questionId: { attemptId, questionId: ans.questionId } },

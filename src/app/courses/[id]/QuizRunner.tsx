@@ -93,24 +93,35 @@ export default function QuizRunner({ quiz, previousAttempt }: { quiz: any; previ
 
     if (phase === 'result') return (
         <div className="glass-panel rounded-3xl p-8 flex flex-col items-center text-center max-w-lg mx-auto">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-5 ${(result?.score ?? 0) / totalPoints >= 0.7 ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-600' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-600'}`}>
-                {(result?.score ?? 0) / totalPoints >= 0.7 ? <CheckCircle2 size={40} /> : <AlertTriangle size={40} />}
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-5 ${!quiz.showScore ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600' : (result?.score ?? 0) / totalPoints >= 0.7 ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-600' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-600'}`}>
+                {!quiz.showScore ? <CheckCircle2 size={40} className="text-indigo-600" /> : (result?.score ?? 0) / totalPoints >= 0.7 ? <CheckCircle2 size={40} /> : <AlertTriangle size={40} />}
             </div>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-1">
-                {(result?.score ?? 0) / totalPoints >= 0.7 ? 'Quiz Selesai! 🎉' : 'Quiz Selesai'}
+                Quiz Selesai! 🎉
             </h2>
             <p className="text-slate-500 mb-6">Hasil pengerjaan quiz <strong>{quiz.title}</strong></p>
-            <div className="text-center mb-6">
-                <div className="text-5xl font-black text-indigo-600 dark:text-indigo-400">{result?.score ?? 0}</div>
-                <div className="text-slate-500 text-sm mt-1">dari {totalPoints} poin</div>
-            </div>
-            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 mb-2">
-                <div className={`h-3 rounded-full transition-all ${(result?.score ?? 0) / totalPoints >= 0.7 ? 'bg-blue-500' : 'bg-amber-500'}`} style={{ width: `${Math.round(((result?.score ?? 0) / totalPoints) * 100)}%` }} />
-            </div>
-            <p className="text-sm text-slate-500">{Math.round(((result?.score ?? 0) / totalPoints) * 100)}%</p>
-            {previousAttempt && previousAttempt.answers?.some((a: any) => a.question?.type === 'ESSAY' && a.score === null) && (
+            
+            {!quiz.showScore ? (
+                <div className="w-full mt-2 p-5 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-2xl text-center">
+                    <p className="font-semibold text-indigo-700 dark:text-indigo-400 text-sm">Nilai disembunyikan oleh guru</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Nilai Anda untuk quiz ini tidak ditampilkan atas kebijakan guru mata pelajaran.</p>
+                </div>
+            ) : (
+                <>
+                    <div className="text-center mb-6">
+                        <div className="text-5xl font-black text-indigo-600 dark:text-indigo-400">{result?.score ?? 0}</div>
+                        <div className="text-slate-500 text-sm mt-1">dari {totalPoints} poin</div>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 mb-2">
+                        <div className={`h-3 rounded-full transition-all ${(result?.score ?? 0) / totalPoints >= 0.7 ? 'bg-blue-500' : 'bg-amber-500'}`} style={{ width: `${Math.round(((result?.score ?? 0) / totalPoints) * 100)}%` }} />
+                    </div>
+                    <p className="text-sm text-slate-500">{Math.round(((result?.score ?? 0) / totalPoints) * 100)}%</p>
+                </>
+            )}
+
+            {quiz.showScore && (questions.some((q: any) => q.type === 'ESSAY' || q.type === 'SHORT_ANSWER') || previousAttempt?.answers?.some((a: any) => (a.question?.type === 'ESSAY' || a.question?.type === 'SHORT_ANSWER') && a.score === null)) && (
                 <div className="mt-5 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-sm text-amber-700 dark:text-amber-400">
-                    ⚠️ Soal esai akan dinilai manual oleh guru. Skor final akan diperbarui setelah penilaian.
+                    ⚠️ Soal esai / isian singkat akan dinilai manual oleh guru. Skor final akan diperbarui setelah penilaian.
                 </div>
             )}
         </div>

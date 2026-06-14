@@ -22,15 +22,16 @@ export default function QuizTab({ courseId, quizzes, weekModules }: { courseId: 
     const [deadline, setDeadline] = useState('');
     const [weekModuleId, setWeekModuleId] = useState('');
     const [maxAttempts, setMaxAttempts] = useState('1');
+    const [showScore, setShowScore] = useState(true);
     const [msg, setMsg] = useState('');
 
     const handleCreate = () => {
         if (!title.trim()) return;
         startTransition(async () => {
             setMsg('');
-            const res = await createQuiz(courseId, title, desc, timeLimit ? parseInt(timeLimit) : null, deadline || null, weekModuleId || null, maxAttempts ? parseInt(maxAttempts) : 1);
+            const res = await createQuiz(courseId, title, desc, timeLimit ? parseInt(timeLimit) : null, deadline || null, weekModuleId || null, maxAttempts ? parseInt(maxAttempts) : 1, showScore);
             if (res.error) setMsg('❌ ' + res.error);
-            else { setMsg('✓ Quiz berhasil dibuat!'); setTitle(''); setDesc(''); setTimeLimit(''); setDeadline(''); setWeekModuleId(''); setMaxAttempts('1'); setShowCreate(false); }
+            else { setMsg('✓ Quiz berhasil dibuat!'); setTitle(''); setDesc(''); setTimeLimit(''); setDeadline(''); setWeekModuleId(''); setMaxAttempts('1'); setShowScore(true); setShowCreate(false); }
         });
     };
 
@@ -79,6 +80,10 @@ export default function QuizTab({ courseId, quizzes, weekModules }: { courseId: 
                                 <span className="text-xs text-slate-400 shrink-0 font-medium">Percobaan</span>
                                 <input type="number" min="1" value={maxAttempts} onChange={e => setMaxAttempts(e.target.value)} placeholder="Maks percobaan" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                             </div>
+                        </div>
+                        <div className="flex items-center gap-2 px-1">
+                            <input type="checkbox" id="showScore" checked={showScore} onChange={e => setShowScore(e.target.checked)} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                            <label htmlFor="showScore" className="text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">Tampilkan nilai ke murid setelah selesai mengerjakan</label>
                         </div>
                         <div className="flex justify-end">
                             <button onClick={handleCreate} disabled={!title.trim() || isPending} className="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl text-sm flex items-center gap-2 disabled:opacity-50">
@@ -144,6 +149,7 @@ function QuizCard({ quiz, courseId }: { quiz: any; courseId: string }) {
     const [editTimeLimit, setEditTimeLimit] = useState(quiz.timeLimit ? String(quiz.timeLimit) : '');
     const [editDeadline, setEditDeadline] = useState(quiz.deadline ? new Date(quiz.deadline).toISOString().substring(0, 16) : '');
     const [editMaxAttempts, setEditMaxAttempts] = useState(quiz.maxAttempts ? String(quiz.maxAttempts) : '1');
+    const [editShowScore, setEditShowScore] = useState(quiz.showScore ?? true);
 
     // Question form state
     const [qType, setQType] = useState<'MULTIPLE_CHOICE' | 'ESSAY' | 'SHORT_ANSWER'>('MULTIPLE_CHOICE');
@@ -155,7 +161,7 @@ function QuizCard({ quiz, courseId }: { quiz: any; courseId: string }) {
 
     const handleTogglePublish = () => {
         startTransition(async () => {
-            await updateQuiz(quiz.id, courseId, quiz.title, quiz.description || '', quiz.timeLimit, !quiz.isPublished, quiz.deadline ? new Date(quiz.deadline).toISOString() : null, quiz.maxAttempts);
+            await updateQuiz(quiz.id, courseId, quiz.title, quiz.description || '', quiz.timeLimit, !quiz.isPublished, quiz.deadline ? new Date(quiz.deadline).toISOString() : null, quiz.maxAttempts, quiz.showScore);
         });
     };
 
@@ -170,7 +176,8 @@ function QuizCard({ quiz, courseId }: { quiz: any; courseId: string }) {
                 editTimeLimit ? parseInt(editTimeLimit) : null,
                 quiz.isPublished,
                 editDeadline || null,
-                editMaxAttempts ? parseInt(editMaxAttempts) : 1
+                editMaxAttempts ? parseInt(editMaxAttempts) : 1,
+                editShowScore
             );
             if (res.error) alert(res.error);
             else setShowEdit(false);
@@ -273,6 +280,10 @@ function QuizCard({ quiz, courseId }: { quiz: any; courseId: string }) {
                                 <span className="text-xs text-slate-400 shrink-0 font-medium">Percobaan</span>
                                 <input type="number" min="1" value={editMaxAttempts} onChange={e => setEditMaxAttempts(e.target.value)} placeholder="Maks percobaan" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                             </div>
+                        </div>
+                        <div className="flex items-center gap-2 px-1">
+                            <input type="checkbox" id={`editShowScore-${quiz.id}`} checked={editShowScore} onChange={e => setEditShowScore(e.target.checked)} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                            <label htmlFor={`editShowScore-${quiz.id}`} className="text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">Tampilkan nilai ke murid setelah selesai mengerjakan</label>
                         </div>
                         <div className="flex justify-end gap-2">
                             <button onClick={() => setShowEdit(false)} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs hover:bg-slate-200">Batal</button>
@@ -405,28 +416,132 @@ function QuizCard({ quiz, courseId }: { quiz: any; courseId: string }) {
                             <p className="text-xs font-bold text-slate-500 uppercase mb-3">Hasil Murid ({quiz.attempts.length})</p>
                             <div className="space-y-2">
                                 {quiz.attempts.map((attempt: any) => (
-                                    <div key={attempt.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700/50 text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-7 h-7 rounded-full overflow-hidden bg-slate-200 shrink-0">
-                                                <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${attempt.user?.name}`} alt="" />
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-slate-800 dark:text-slate-200">{attempt.user?.name}</p>
-                                                <p className="text-xs text-slate-400">{attempt.submittedAt ? 'Selesai' : 'Sedang mengerjakan'}</p>
-                                            </div>
-                                        </div>
-                                        {attempt.submittedAt ? (
-                                            <span className="font-bold text-base text-blue-600 dark:text-blue-400">
-                                                {attempt.score ?? '?'}/{totalPoints}
-                                            </span>
-                                        ) : (
-                                            <span className="text-xs text-amber-500">Belum selesai</span>
-                                        )}
-                                    </div>
+                                    <StudentAttemptRow key={attempt.id} attempt={attempt} quiz={quiz} courseId={courseId} />
                                 ))}
                             </div>
                         </div>
                     )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function StudentAttemptRow({ attempt, quiz, courseId }: { attempt: any; quiz: any; courseId: string }) {
+    const [expanded, setExpanded] = useState(false);
+    const totalPoints = quiz.questions?.reduce((s: number, q: any) => s + q.points, 0) ?? 0;
+
+    return (
+        <div className="border border-slate-100 dark:border-slate-700/50 rounded-xl overflow-hidden bg-white dark:bg-slate-800">
+            <div onClick={() => attempt.submittedAt && setExpanded(!expanded)} className={`flex items-center justify-between p-3 text-sm cursor-pointer ${attempt.submittedAt ? 'hover:bg-slate-50 dark:hover:bg-slate-700/30' : ''}`}>
+                <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full overflow-hidden bg-slate-200 shrink-0">
+                        <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${attempt.user?.name}`} alt="" />
+                    </div>
+                    <div>
+                        <p className="font-semibold text-slate-800 dark:text-slate-200">{attempt.user?.name}</p>
+                        <p className="text-xs text-slate-400">{attempt.submittedAt ? 'Selesai' : 'Sedang mengerjakan'}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    {attempt.submittedAt ? (
+                        <>
+                            <span className="font-bold text-base text-blue-600 dark:text-blue-400">
+                                {attempt.score ?? '?'}/{totalPoints}
+                            </span>
+                            {expanded ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+                        </>
+                    ) : (
+                        <span className="text-xs text-amber-500">Belum selesai</span>
+                    )}
+                </div>
+            </div>
+
+            {expanded && (
+                <div className="p-4 border-t border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/20 space-y-4">
+                    <p className="text-xs font-bold text-slate-500 uppercase">Detail Jawaban & Penilaian</p>
+                    {quiz.questions?.map((q: any, idx: number) => {
+                        const ans = attempt.answers?.find((a: any) => a.questionId === q.id);
+                        return (
+                            <AnswerGradingCard key={q.id} index={idx + 1} question={q} answer={ans} courseId={courseId} />
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function AnswerGradingCard({ index, question, answer, courseId }: { index: number; question: any; answer: any; courseId: string }) {
+    const [score, setScore] = useState(answer?.score !== null && answer?.score !== undefined ? String(answer.score) : '');
+    const [feedback, setFeedback] = useState(answer?.feedback || '');
+    const [isPending, startTransition] = useTransition();
+    const [msg, setMsg] = useState('');
+
+    const handleGrade = () => {
+        if (!answer) return;
+        const scoreNum = parseInt(score) || 0;
+        if (scoreNum < 0 || scoreNum > question.points) {
+            alert(`Nilai harus antara 0 dan ${question.points}`);
+            return;
+        }
+        startTransition(async () => {
+            setMsg('');
+            const res = await gradeEssayAnswer(answer.id, scoreNum, feedback, courseId);
+            if (res.error) setMsg('❌ ' + res.error);
+            else setMsg('✓ Nilai disimpan!');
+        });
+    };
+
+    const isManual = question.type === 'ESSAY' || question.type === 'SHORT_ANSWER';
+
+    return (
+        <div className="p-3.5 rounded-xl border border-slate-200/60 dark:border-slate-700 bg-white dark:bg-slate-800 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2">
+                    <span className="text-xs font-bold text-slate-400 mt-0.5">{index}.</span>
+                    <div>
+                        <p className="text-xs font-semibold text-slate-500 uppercase">
+                            {question.type === 'MULTIPLE_CHOICE' ? 'Pilihan Ganda' : question.type === 'SHORT_ANSWER' ? 'Jawaban Singkat' : 'Esai'}
+                        </p>
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200 mt-0.5">{question.text}</p>
+                    </div>
+                </div>
+                <span className="text-xs font-medium text-slate-400 shrink-0">{question.points} poin maks</span>
+            </div>
+
+            {/* Answer Display */}
+            <div className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg text-sm border border-slate-100 dark:border-slate-800/80">
+                <p className="text-xs text-slate-400 mb-1">Jawaban Murid:</p>
+                {answer?.answer ? (
+                    <p className="font-semibold text-slate-800 dark:text-slate-100 whitespace-pre-wrap">{answer.answer}</p>
+                ) : (
+                    <p className="italic text-slate-400">Tidak menjawab</p>
+                )}
+            </div>
+
+            {/* Automatic vs Manual Grading */}
+            {!isManual ? (
+                <div className="flex items-center gap-2 text-xs">
+                    <span className={`px-2 py-0.5 rounded-full font-semibold ${answer?.isCorrect ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' : 'bg-red-50 text-red-700 dark:bg-red-500/20 dark:text-red-400'}`}>
+                        {answer?.isCorrect ? 'Benar (Otomatis)' : 'Salah (Otomatis)'}
+                    </span>
+                    <span className="text-slate-500 font-bold">Skor: {answer?.score ?? 0}</span>
+                </div>
+            ) : (
+                <div className="space-y-3 pt-2 border-t border-dashed border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-slate-500 font-bold uppercase">Nilai:</span>
+                            <input type="number" min="0" max={question.points} value={score} onChange={e => setScore(e.target.value)} disabled={!answer || isPending} className="w-16 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center" />
+                            <span className="text-xs text-slate-400">/ {question.points}</span>
+                        </div>
+                        <input value={feedback} onChange={e => setFeedback(e.target.value)} disabled={!answer || isPending} placeholder="Catatan/feedback guru (opsional)" className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none" />
+                        <button onClick={handleGrade} disabled={!answer || isPending} className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
+                            {isPending ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Simpan
+                        </button>
+                    </div>
+                    {msg && <p className={`text-xs font-medium ${msg.startsWith('✓') ? 'text-blue-600' : 'text-red-500'}`}>{msg}</p>}
                 </div>
             )}
         </div>
