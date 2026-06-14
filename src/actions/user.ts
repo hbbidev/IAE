@@ -187,37 +187,35 @@ export async function generateMobileLoginQrCodePayload() {
     const session = await getServerSession(authOptions);
     if (!session) return { error: 'Sesi tidak ditemukan. Silakan login ulang.' };
 
-    const userId = (session.user as any).id;
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return { error: 'Pengguna tidak ditemukan.' };
+    const accessToken = (session.user as any).accessToken;
+    if (!accessToken) return { error: 'Token akses tidak ditemukan. Silakan login ulang.' };
 
-    // Secret must match backend's JWT_SECRET
-    const secret = process.env.JWT_SECRET || 'percik-super-secret-jwt-key-2026-change-in-production';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://api-percik.hbii.my.id/api";
     
-    // Generate JWT token
-    const token = signJwt({
-      sub: user.email,
-      user_id: user.id,
-      role: user.role,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60) // 30 days expiration for mobile login
-    }, secret);
+    // Call backend to generate a long-lived mobile token
+    const res = await fetch(`${backendUrl}/auth/mobile-token`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
-    const userData = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      nim: user.nim,
-      nisn: user.nisn,
-      kelas: user.kelas
-    };
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      return { error: errorData.message || 'Gagal menghasilkan token mobile dari backend.' };
+    }
+
+    const data = await res.json();
+    if (!data.success || !data.token) {
+      return { error: 'Gagal mendapatkan token mobile dari backend.' };
+    }
 
     // Return the formatted QR data string
     const qrPayload = JSON.stringify({
       type: "login",
-      token: token,
-      user: userData
+      token: data.token,
+      user: data.user
     });
 
     return { success: true, payload: qrPayload };
