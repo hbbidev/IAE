@@ -3,7 +3,6 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import CourseDetailClient from "./CourseDetailClient";
-import mysql from "mysql2/promise";
 
 export default async function TeacherCourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -57,27 +56,30 @@ export default async function TeacherCourseDetailPage({ params }: { params: Prom
     // Only teacher of this course or admin can access
     if (role !== 'ADMIN' && course.teacherId !== userId) redirect("/");
 
-    // Fetch attendance from SIAKAd database
+    // Fetch attendance from unified database via Prisma
     let attendances = [];
     try {
-        const connection = await mysql.createConnection({
-            host: '127.0.0.1',
-            user: 'root',
-            password: '',
-            database: 'percik_db',
-            port: 3306
+        const attendanceRecords = await prisma.attendance.findMany({
+            where: { courseId: id },
+            orderBy: { attendanceDate: 'desc' },
+            include: {
+                user: {
+                    select: { name: true, email: true }
+                }
+            }
         });
 
-        const [rows] = await connection.execute(
-            `SELECT a.id, a.user_id, a.attendance_date, a.status, a.is_verified, a.created_at, u.name as student_name, u.email as student_email 
-             FROM attendances a 
-             JOIN user u ON a.user_id = u.id 
-             WHERE a.course_id = ? 
-             ORDER BY a.attendance_date DESC`,
-            [course.id]
-        );
-        attendances = rows as any[];
-        await connection.end();
+        attendances = attendanceRecords.map((att: any) => ({
+            id: att.id,
+            user_id: att.userId,
+            attendance_date: att.attendanceDate,
+            status: att.status,
+            is_verified: att.isVerified,
+            created_at: att.createdAt,
+            student_name: att.user.name,
+            student_email: att.user.email,
+            location_name: att.locationName,
+        }));
     } catch(e) {
         console.error("Failed to fetch attendances", e);
     }
