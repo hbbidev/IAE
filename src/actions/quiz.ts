@@ -22,6 +22,12 @@ async function verifyTeacher(courseId: string) {
 export async function createQuiz(courseId: string, title: string, description: string, timeLimit: number | null, deadline: string | null = null, weekModuleId: string | null = null, maxAttempts: number = 1) {
   const session = await verifyTeacher(courseId)
   if (!session) return { error: 'Akses Ditolak' }
+  if (timeLimit !== null && timeLimit < 0) {
+    return { error: 'Durasi quiz tidak boleh kurang dari 0 menit' }
+  }
+  if (maxAttempts < 1) {
+    return { error: 'Batas percobaan minimal 1 kali' }
+  }
   try {
     const quiz = await prisma.quiz.create({
       data: {
@@ -42,6 +48,12 @@ export async function createQuiz(courseId: string, title: string, description: s
 export async function updateQuiz(quizId: string, courseId: string, title: string, description: string, timeLimit: number | null, isPublished: boolean, deadline: string | null = null, maxAttempts: number = 1) {
   const session = await verifyTeacher(courseId)
   if (!session) return { error: 'Akses Ditolak' }
+  if (timeLimit !== null && timeLimit < 0) {
+    return { error: 'Durasi quiz tidak boleh kurang dari 0 menit' }
+  }
+  if (maxAttempts < 1) {
+    return { error: 'Batas percobaan minimal 1 kali' }
+  }
   try {
     await prisma.quiz.update({
       where: { id: quizId },

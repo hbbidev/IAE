@@ -69,7 +69,7 @@ export default function QuizTab({ courseId, quizzes, weekModules }: { courseId: 
                         <div className="grid grid-cols-3 gap-3">
                             <div className="flex items-center gap-2">
                                 <Clock size={16} className="text-slate-400 shrink-0" />
-                                <input type="number" value={timeLimit} onChange={e => setTimeLimit(e.target.value)} placeholder="Batas waktu (menit)" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                <input type="number" min="0" value={timeLimit} onChange={e => setTimeLimit(e.target.value)} placeholder="Batas waktu (menit)" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-xs text-slate-400 shrink-0 font-medium">Tenggat</span>
@@ -263,7 +263,7 @@ function QuizCard({ quiz, courseId }: { quiz: any; courseId: string }) {
                         <div className="grid grid-cols-3 gap-3">
                             <div className="flex items-center gap-2">
                                 <Clock size={16} className="text-slate-400 shrink-0" />
-                                <input type="number" value={editTimeLimit} onChange={e => setEditTimeLimit(e.target.value)} placeholder="Waktu (menit)" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                <input type="number" min="0" value={editTimeLimit} onChange={e => setEditTimeLimit(e.target.value)} placeholder="Waktu (menit)" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-xs text-slate-400 shrink-0 font-medium">Tenggat</span>
