@@ -533,7 +533,7 @@ function AnswerGradingCard({ index, question, answer, courseId }: { index: numbe
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5">
                             <span className="text-xs text-slate-500 font-bold uppercase">Nilai:</span>
-                            <input type="number" min="0" max={question.points} value={score} onChange={e => setScore(e.target.value)} disabled={!answer || isPending} className="w-16 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center" />
+                            <input type="number" min="0" max={question.points} value={score} onChange={e => setScore(e.target.value)} disabled={!answer || isPending} className="w-16 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center" />
                             <span className="text-xs text-slate-400">/ {question.points}</span>
                         </div>
                         <input value={feedback} onChange={e => setFeedback(e.target.value)} disabled={!answer || isPending} placeholder="Catatan/feedback guru (opsional)" className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none" />
